@@ -1,225 +1,168 @@
-# 🦁 Simba Supermarket — Modern E-Commerce Website
+# Simba Supermarket - Modern E-Commerce Platform
 
-Rwanda's favourite online supermarket rebuilt as a modern, fast, and beautiful e-commerce experience.
+A modern, fast, and beautiful e-commerce experience for Rwanda's most popular online supermarket.
 
-## ✨ Features
-
-### Core Requirements ✓
-- ✅ **552 Products** displayed by category from dataset
-- ✅ **Search & Filter** — Real-time search + category/price filters
-- ✅ **Add to Cart** — Full shopping cart functionality
-- ✅ **Responsive Design** — Mobile-first, works on all devices
-- ✅ **Deployed** — Ready to deploy anywhere (Vercel, Netlify, GitHub Pages)
-
-### Bonus Features ⭐
-- ✅ **Checkout Flow** — Complete checkout with customer details
-- ✅ **MoMo Payment** — MTN Mobile Money & Airtel Money integration with PIN entry
-- ✅ **3 Languages** — English, French, Kinyarwanda (full i18n)
-- ✅ **Product Detail Page** — Dedicated page for each product
-- ✅ **Dark Mode** — Beautiful light/dark theme toggle
-- ✅ **Modern UI** — Clean design with custom color palette
-
-## 🎨 Design
+## 🎨 Design System
 
 ### Color Palette
 - **Primary**: `#30364F` (Deep Navy)
 - **Secondary**: `#ACBAC4` (Soft Blue-Gray)
 - **Accent**: `#E1D9BC` (Warm Beige)
-- **Background**: `#F0F0DB` (Light Cream)
+- **Light**: `#F0F0DB` (Light Cream)
 
-### Dark Mode
-Automatically switches all colors for comfortable night viewing.
+### Theme Modes
+- **Light Mode (Sunny)**: Clean, bright interface with cream background
+- **Dark Mode (Night)**: Eye-friendly dark interface with navy tones
 
-## 🚀 Tech Stack
+## ✨ Features
 
-- **HTML5** — Semantic markup
-- **CSS3** — Modern CSS with CSS Variables for theming
-- **Vanilla JavaScript** — No frameworks, pure performance
-- **LocalStorage** — Persistent cart & preferences
+### Core Requirements ✓
+- [x] Display products from JSON dataset by category
+- [x] Search & filter products
+- [x] Add to cart functionality
+- [x] Responsive design (mobile-first)
+- [x] Deployed and accessible via public URL
 
-## 📁 Project Structure
+### Bonus Features ⭐
+- [x] Checkout flow with payment simulation
+- [x] MoMo (Mobile Money) payment integration
+- [x] 3 languages: English, French, Kinyarwanda
+- [x] Product detail page
+- [x] Dark mode
+- [x] Font Awesome icons (no emojis)
+- [x] International font support (Noto Sans)
+
+## 🌍 Multilingual Support
+
+The platform supports three languages:
+- **English (EN)** - Default
+- **French (FR)** - Français
+- **Kinyarwanda (RW)** - Ikinyarwanda
+
+Language preference is saved in localStorage and persists across sessions.
+
+## 📱 Responsive Design
+
+Fully responsive across all devices:
+- **Desktop**: 1400px+ (Full layout with sidebar)
+- **Tablet**: 768px - 1024px (Adapted grid layout)
+- **Mobile**: 320px - 767px (Optimized for touch)
+
+## 🛠️ Technology Stack
+
+- **HTML5**: Semantic markup
+- **CSS3**: Custom properties, Grid, Flexbox
+- **JavaScript (ES6+)**: Vanilla JS, async/await
+- **Font Awesome 6.5.1**: Icon library
+- **Noto Sans**: International font family
+
+## 📂 Project Structure
 
 ```
 simbaonlineshopping/
-├── index.html          # Home page (hero, categories, products)
-├── product.html        # Product detail page
-├── cart.html           # Cart & checkout page
-├── style.css           # All styles (light/dark mode)
-├── app.js              # Core logic (cart, search, i18n, theme)
-├── product.js          # Product detail logic
-├── cart.js             # Cart & checkout logic
-├── simba_products.json # 552 products dataset
-└── README.md           # This file
+├── index.html              # Home page
+├── cart.html               # Shopping cart & checkout
+├── product.html            # Product detail page
+├── style.css               # Global styles & theme
+├── app.js                  # Main application logic
+├── cart.js                 # Cart & checkout functionality
+├── product.js              # Product detail logic
+└── simba_products.json     # Product database (552 items)
 ```
 
-## 🌐 Pages
+## 🎯 Key Functionality
 
-### 1. Home Page (`index.html`)
-- Hero section with CTA
-- 9 category cards with product counts
-- Products grid with lazy loading
-- Search bar + filters (category, price sort)
-- Load more functionality
-
-### 2. Product Detail (`product.html`)
-- Large product image
-- Full product information
-- Quantity selector
-- Add to cart button
-- Related products section
-
-### 3. Cart & Checkout (`cart.html`)
-- Cart items with quantity controls
-- Order summary with delivery calculation
-- Checkout modal with 3 steps:
-  1. Customer details + payment method selection
-  2. MoMo/Airtel PIN entry (interactive keypad)
-  3. Order confirmation with reference number
-
-## 🎯 Key Features Explained
-
-### Search & Filter
-- Real-time search across product names and categories
-- Filter by category (9 categories)
-- Sort by price (low→high, high→low) or name (A→Z)
-- Instant results, no page reload
+### Product Catalog
+- 552 real products across 9 categories
+- Dynamic category filtering
+- Real-time search
+- Sort by price and name
+- Lazy loading with "Load More"
 
 ### Shopping Cart
 - Add/remove products
-- Update quantities
-- Persistent across sessions (LocalStorage)
-- Real-time badge counter
-- Automatic delivery fee calculation (free over 50,000 RWF)
+- Quantity adjustment
+- Real-time price calculation
+- Persistent storage (localStorage)
+- Cart badge counter
 
-### MoMo Payment Integration
-- Realistic payment flow
-- MTN MoMo & Airtel Money options
-- Interactive PIN pad (5-digit)
-- Visual feedback
-- Order confirmation with reference
+### Checkout Process
+1. **Customer Details**: Name, phone, address
+2. **Payment Method**: MTN MoMo, Airtel Money, Cash on Delivery
+3. **MoMo PIN Entry**: Simulated payment interface
+4. **Order Confirmation**: Success screen with order reference
 
-### Multi-Language (i18n)
-- English, French, Kinyarwanda
-- All UI text translated
-- Persistent language preference
-- Instant switching
-
-### Dark Mode
-- Toggle between light (sunny) and dark (night) themes
+### Theme System
+- Toggle between light and dark modes
 - Smooth transitions
 - Persistent preference
-- Custom color palette for each mode
+- Icon changes (moon/sun)
 
-## 🚀 Deployment
+## 🚀 Getting Started
 
-### Option 1: Vercel (Recommended)
-```bash
-# Install Vercel CLI
-npm i -g vercel
+1. **Clone or download** the project
+2. **Open** `index.html` in a modern browser
+3. **Browse** products, add to cart, and checkout!
 
-# Deploy
-cd simbaonlineshopping
-vercel
-```
+No build process or dependencies required - pure vanilla JavaScript!
 
-### Option 2: Netlify
-1. Drag & drop the folder to [Netlify Drop](https://app.netlify.com/drop)
-2. Done! Get instant URL
+## 💾 Data Storage
 
-### Option 3: GitHub Pages
-1. Push to GitHub repository
-2. Go to Settings → Pages
-3. Select branch and root folder
-4. Save and get URL
+All data is stored in browser localStorage:
+- `cart`: Shopping cart items
+- `theme`: Light/dark mode preference
+- `language`: Selected language (en/fr/rw)
 
-### Option 4: Local Testing
-```bash
-# Using Python
-python -m http.server 8000
+## 🎨 Icon System
 
-# Using Node.js
-npx serve
+Using Font Awesome 6.5.1 for all icons:
+- Shopping bag logo
+- Search, cart, theme toggle
+- Category icons (customized per category)
+- Payment method icons
+- UI controls (plus, minus, check, etc.)
 
-# Then open: http://localhost:8000
-```
+## 🌐 Browser Support
 
-## 📱 Responsive Breakpoints
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
-- **Desktop**: 1400px+ (full layout)
-- **Tablet**: 768px - 1024px (adjusted grid)
-- **Mobile**: < 768px (stacked layout, mobile-first)
+## 📊 Product Categories
 
-## 🎨 UI/UX Highlights
+1. Cosmetics & Personal Care
+2. Alcoholic Drinks
+3. Food Products
+4. Kitchenware & Electronics
+5. Cleaning & Sanitary
+6. General
+7. Baby Products
+8. Sports & Fitness
+9. Stationery
 
-- **Fast Loading**: Lazy image loading, optimized rendering
-- **Smooth Animations**: CSS transitions on all interactions
-- **Accessible**: Semantic HTML, keyboard navigation
-- **Intuitive**: Clear CTAs, visual feedback
-- **Modern**: Clean design, ample whitespace
+## 💳 Payment Methods
 
-## 📊 Dataset
+- **MTN MoMo**: Mobile money with PIN entry
+- **Airtel Money**: Mobile money alternative
+- **Cash on Delivery**: Pay when you receive
 
-- **552 products** across 9 categories
-- Real data from simbaonlineshopping.com
-- Categories:
-  - Cosmetics & Personal Care
-  - Alcoholic Drinks
-  - Food Products
-  - Kitchenware & Electronics
-  - General
-  - Cleaning & Sanitary
-  - Sports & Fitness
-  - Stationery
-  - Baby Products
+## 🎯 Performance Optimizations
 
-## 🏆 Grading Criteria Coverage
+- Lazy loading images
+- Efficient DOM updates
+- Debounced search
+- Minimal dependencies
+- Optimized CSS (no frameworks)
 
-### Functionality (30/30)
-✅ All requirements working
-✅ Search, filter, cart, checkout
-✅ Responsive design
-✅ MoMo payment flow
+## 📝 License
 
-### Product Thinking (25/25)
-✅ Solves real UX problems
-✅ Intuitive navigation
-✅ Clear product discovery
-✅ Smooth checkout experience
+© 2025 Simba Supermarket. All rights reserved.
 
-### UI/UX Quality (25/25)
-✅ Clean, modern design
-✅ Custom color palette
-✅ Dark mode
-✅ Responsive & mobile-first
-✅ Smooth animations
+## 🤝 Contributing
 
-### Code Quality (20/20)
-✅ Clean, organized structure
-✅ Modular JavaScript
-✅ CSS variables for theming
-✅ Comments where needed
-✅ Efficient AI usage
-
-## 🎉 Bonus Features Implemented
-
-- ⭐ Complete checkout flow
-- ⭐ MoMo payment integration with PIN
-- ⭐ 3 languages (EN/FR/RW)
-- ⭐ Product detail pages
-- ⭐ Dark mode
-- ⭐ Category icons
-- ⭐ Related products
-- ⭐ Order confirmation
-- ⭐ Persistent cart
-- ⭐ Load more pagination
-
-## 📞 Contact
-
-**Simba Supermarket**
-- 📍 Kigali, Rwanda
-- 📞 +250 788 000 000
-- ✉️ info@simbasupermarket.rw
+This is a contest submission project. For inquiries, contact Simba Supermarket.
 
 ---
 
-Built with ❤️ for Rwanda's favourite online supermarket
+**Built with ❤️ for Rwanda's favorite online supermarket**
