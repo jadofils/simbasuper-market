@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LocalStorage Test</title>
+</head>
+<body>
+    <h1>LocalStorage Test</h1>
+    <button onclick="checkStorage()">Check Liked Products</button>
+    <button onclick="addTestLikes()">Add Test Likes</button>
+    <button onclick="clearLikes()">Clear Likes</button>
+    <pre id="output"></pre>
+
+    <script>
+        function checkStorage() {
+            const liked = localStorage.getItem('likedProducts');
+            const output = document.getElementById('output');
+            output.textContent = 'likedProducts in localStorage:\n' + (liked || 'null/empty');
+            
+            if (liked) {
+                const parsed = JSON.parse(liked);
+                output.textContent += '\n\nParsed array:\n' + JSON.stringify(parsed, null, 2);
+                output.textContent += '\n\nCount: ' + parsed.length;
+            }
+        }
+
+        function addTestLikes() {
+            const testLikes = [10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008, 10009, 10010];
+            localStorage.setItem('likedProducts', JSON.stringify(testLikes));
+            alert('Added 10 test likes!');
+            checkStorage();
+        }
+
+        function clearLikes() {
+            localStorage.removeItem('likedProducts');
+            alert('Cleared likes!');
+            checkStorage();
+        }
+
+        // Auto check on load
+        window.onload = checkStorage;
+    </script>
+</body>
+</html>

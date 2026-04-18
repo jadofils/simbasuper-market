@@ -41,6 +41,11 @@
 
     <!-- RIGHT: Actions -->
     <div class="nav-right">
+      <a href="#contact" class="nav-link" id="contactLink">
+        <i class="fas fa-headset"></i>
+        <span>Help</span>
+      </a>
+      
       <a href="favorites.html" class="nav-icon-btn" title="Favorites">
         <i class="fas fa-heart"></i>
         <span class="nav-badge" id="favoritesBadge">0</span>
@@ -135,6 +140,94 @@
   <div class="products-grid" id="productsGrid"></div>
   <div class="load-more-wrap">
     <button class="btn-outline" id="loadMoreBtn">Load More</button>
+  </div>
+</section>
+
+<!-- CONTACT US / HELP -->
+<section class="section contact-section" id="contact">
+  <div class="contact-container">
+    <div class="contact-info">
+      <h2><i class="fas fa-headset"></i> Need Help?</h2>
+      <p>Our customer support team is here to assist you 24/7. Get in touch with us!</p>
+      
+      <div class="contact-methods">
+        <div class="contact-method">
+          <i class="fas fa-phone"></i>
+          <div>
+            <h4>Call Us</h4>
+            <p>+250 788 000 000</p>
+          </div>
+        </div>
+        <div class="contact-method">
+          <i class="fas fa-envelope"></i>
+          <div>
+            <h4>Email Us</h4>
+            <p>support@simbasupermarket.rw</p>
+          </div>
+        </div>
+        <div class="contact-method">
+          <i class="fas fa-map-marker-alt"></i>
+          <div>
+            <h4>Visit Us</h4>
+            <p>KN 4 Ave, Kigali, Rwanda</p>
+          </div>
+        </div>
+        <div class="contact-method">
+          <i class="fas fa-clock"></i>
+          <div>
+            <h4>Working Hours</h4>
+            <p>Mon - Sun: 8:00 AM - 10:00 PM</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="contact-form-wrapper">
+      <h3>Send us a Message</h3>
+      <form id="contactForm" class="contact-form">
+        <div class="form-group">
+          <label for="contactName">Full Name *</label>
+          <input type="text" id="contactName" required />
+          <span class="error-msg" id="nameError"></span>
+        </div>
+        
+        <div class="form-group">
+          <label for="contactEmail">Email Address *</label>
+          <input type="email" id="contactEmail" required />
+          <span class="error-msg" id="emailError"></span>
+        </div>
+        
+        <div class="form-group">
+          <label for="contactPhone">Phone Number *</label>
+          <input type="tel" id="contactPhone" placeholder="+250 7XX XXX XXX" required />
+          <span class="error-msg" id="phoneError"></span>
+        </div>
+        
+        <div class="form-group">
+          <label for="contactSubject">Subject *</label>
+          <select id="contactSubject" required>
+            <option value="">Select a subject</option>
+            <option value="order">Order Inquiry</option>
+            <option value="product">Product Question</option>
+            <option value="delivery">Delivery Issue</option>
+            <option value="payment">Payment Problem</option>
+            <option value="feedback">Feedback</option>
+            <option value="other">Other</option>
+          </select>
+          <span class="error-msg" id="subjectError"></span>
+        </div>
+        
+        <div class="form-group">
+          <label for="contactMessage">Message *</label>
+          <textarea id="contactMessage" rows="5" required></textarea>
+          <span class="error-msg" id="messageError"></span>
+        </div>
+        
+        <button type="submit" class="btn-primary full-width">
+          <i class="fas fa-paper-plane"></i> Send Message
+        </button>
+      </form>
+    </div>
   </div>
 </section>
 

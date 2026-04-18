@@ -104,9 +104,12 @@ function renderCart() {
     return;
   }
   
+  const referralDiscount = parseInt(localStorage.getItem('referralDiscount') || '0');
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const discountAmount = Math.round(subtotal * (referralDiscount / 100));
+  const subtotalAfterDiscount = subtotal - discountAmount;
   const delivery = 2000;
-  const total = subtotal + delivery;
+  const total = subtotalAfterDiscount + delivery;
   
   layout.innerHTML = `
     <div class="cart-items">
@@ -142,6 +145,12 @@ function renderCart() {
         <span>${cartTranslations[currentLang].subtotal}</span>
         <span>${formatPrice(subtotal)}</span>
       </div>
+      ${referralDiscount > 0 ? `
+      <div class="summary-row" style="color: var(--success);">
+        <span><i class="fas fa-gift"></i> Referral Discount (${referralDiscount}%)</span>
+        <span>-${formatPrice(discountAmount)}</span>
+      </div>
+      ` : ''}
       <div class="summary-row">
         <span>${cartTranslations[currentLang].delivery}</span>
         <span>${formatPrice(delivery)}</span>
@@ -297,6 +306,28 @@ function completeOrder() {
   
   document.getElementById('orderRef').textContent = 
     `${cartTranslations[currentLang].orderRef} ${orderRef}`;
+  
+  // Mark referral as converted
+  const referralCode = localStorage.getItem('referralCode');
+  if (referralCode) {
+    let referrals = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    if (referrals[referralCode]) {
+      const lastReferral = referrals[referralCode][referrals[referralCode].length - 1];
+      if (lastReferral && !lastReferral.converted) {
+        lastReferral.converted = true;
+        lastReferral.conversionDate = new Date().toISOString();
+        localStorage.setItem('referralTracking', JSON.stringify(referrals));
+        
+        let credits = JSON.parse(localStorage.getItem('referralCredits') || '{}');
+        credits[referralCode] = (credits[referralCode] || 0) + 500;
+        localStorage.setItem('referralCredits', JSON.stringify(credits));
+      }
+    }
+    localStorage.removeItem('referralDiscount');
+  }
+  
+  // Mark user as having purchased
+  localStorage.setItem('hasPurchased', 'true');
   
   // Clear cart
   localStorage.removeItem('cart');

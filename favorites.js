@@ -7,12 +7,24 @@ let currentSort = 'recent';
 // Load products and favorites
 async function loadFavorites() {
   try {
+    console.log('Loading favorites...');
     const response = await fetch('simba_products.json');
     const data = await response.json();
     allProducts = data.products;
+    console.log('Loaded products:', allProducts.length);
+    console.log('First 5 product IDs:', allProducts.slice(0, 5).map(p => p.id));
     
     const likedIds = getLikedProducts();
+    console.log('Liked IDs:', likedIds);
+    console.log('Liked IDs type:', typeof likedIds[0]);
+    console.log('Product ID type:', typeof allProducts[0].id);
+    
     favoriteProducts = allProducts.filter(p => likedIds.includes(p.id));
+    console.log('Favorite products:', favoriteProducts.length);
+    
+    if (favoriteProducts.length === 0 && likedIds.length > 0) {
+      console.error('TYPE MISMATCH! Liked IDs:', likedIds, 'Product IDs sample:', allProducts.slice(0, 5).map(p => p.id));
+    }
     
     updateCounts();
     renderFavorites();
@@ -23,7 +35,9 @@ async function loadFavorites() {
 
 // Get liked products from localStorage
 function getLikedProducts() {
-  return JSON.parse(localStorage.getItem('likedProducts') || '[]');
+  const liked = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+  console.log('getLikedProducts called, found:', liked);
+  return liked;
 }
 
 // Update all counts
@@ -45,13 +59,28 @@ function updateCounts() {
     }
   });
   
-  document.getElementById('favoritesCount').textContent = `${counts.all} items saved`;
-  document.getElementById('allCount').textContent = counts.all;
-  document.getElementById('cosmeticsCount').textContent = counts['Cosmetics & Personal Care'];
-  document.getElementById('foodCount').textContent = counts['Food Products'];
-  document.getElementById('drinksCount').textContent = counts['Alcoholic Drinks'];
-  document.getElementById('kitchenCount').textContent = counts['Kitchenware & Electronics'];
-  document.getElementById('otherCount').textContent = counts.other;
+  console.log('Counts:', counts);
+  
+  const favoritesCount = document.getElementById('favoritesCount');
+  if (favoritesCount) favoritesCount.textContent = `${counts.all} items saved`;
+  
+  const allCount = document.getElementById('allCount');
+  if (allCount) allCount.textContent = counts.all;
+  
+  const cosmeticsCount = document.getElementById('cosmeticsCount');
+  if (cosmeticsCount) cosmeticsCount.textContent = counts['Cosmetics & Personal Care'];
+  
+  const foodCount = document.getElementById('foodCount');
+  if (foodCount) foodCount.textContent = counts['Food Products'];
+  
+  const drinksCount = document.getElementById('drinksCount');
+  if (drinksCount) drinksCount.textContent = counts['Alcoholic Drinks'];
+  
+  const kitchenCount = document.getElementById('kitchenCount');
+  if (kitchenCount) kitchenCount.textContent = counts['Kitchenware & Electronics'];
+  
+  const otherCount = document.getElementById('otherCount');
+  if (otherCount) otherCount.textContent = counts.other;
   
   // Update favorites badge
   const badge = document.getElementById('favoritesBadge');
@@ -66,7 +95,7 @@ function renderFavorites() {
   const grid = document.getElementById('favoritesGrid');
   const emptyState = document.getElementById('emptyFavorites');
   
-  if (!grid) return;
+  if (!grid || !emptyState) return;
   
   // Filter products
   let filtered = [...favoriteProducts];
@@ -92,16 +121,26 @@ function renderFavorites() {
       filtered.sort((a, b) => b.price - a.price);
       break;
     case 'recent':
-      // Keep original order (most recently added first)
       const likedIds = getLikedProducts();
       filtered.sort((a, b) => likedIds.indexOf(b.id) - likedIds.indexOf(a.id));
       break;
   }
   
+  console.log('Filtered products:', filtered.length);
+  
   // Show/hide empty state
-  if (filtered.length === 0) {
+  if (favoriteProducts.length === 0) {
     grid.style.display = 'none';
     emptyState.style.display = 'flex';
+    console.log('Showing empty state - no favorites');
+    return;
+  }
+  
+  if (filtered.length === 0) {
+    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-light);">No products in this category</p>';
+    grid.style.display = 'grid';
+    emptyState.style.display = 'none';
+    console.log('No products in filtered category');
     return;
   }
   
@@ -115,7 +154,7 @@ function renderFavorites() {
         <i class="fas fa-times"></i>
       </button>
       <a href="product.html?id=${product.id}" class="favorite-card-link">
-        <img src="${product.image}" alt="${product.name}" class="favorite-img" loading="lazy" />
+        <img src="${product.image}" alt="${product.name}" class="favorite-img" loading="lazy" onerror="this.src='https://via.placeholder.com/300x300/f0f0f0/555?text=No+Image'" />
         <div class="favorite-info">
           <div class="favorite-category">${product.category}</div>
           <div class="favorite-name">${product.name}</div>
@@ -127,6 +166,8 @@ function renderFavorites() {
       </button>
     </div>
   `).join('');
+  
+  console.log('Rendered', filtered.length, 'products');
 }
 
 // Format price
@@ -242,6 +283,8 @@ function toggleTheme() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('Favorites page initializing...');
+  
   // Load saved theme
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -254,6 +297,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeToggle = document.getElementById('themeToggle');
   if (themeToggle) {
     themeToggle.addEventListener('click', toggleTheme);
+  }
+  
+  // Language
+  const savedLang = localStorage.getItem('language') || 'en';
+  const langSelect = document.getElementById('langSelect');
+  if (langSelect) {
+    langSelect.value = savedLang;
   }
   
   // Filter tabs
@@ -291,4 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load favorites
   loadFavorites();
   updateCartBadge();
+  
+  console.log('Favorites page initialized');
 });

@@ -175,8 +175,14 @@ function renderProducts(filteredProducts = null) {
   
   grid.innerHTML = limited.map(product => {
     const isLiked = isProductLiked(product.id);
+    const hasDiscount = hasReferralDiscount();
+    const discountPercent = getReferralDiscount();
+    const originalPrice = product.price;
+    const discountedPrice = applyReferralDiscount(originalPrice);
+    
     return `
     <a href="product.html?id=${product.id}" class="product-card">
+      ${hasDiscount ? `<div class="discount-badge">-${discountPercent}% OFF</div>` : ''}
       <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(event, ${product.id})" title="${isLiked ? 'Unlike' : 'Like'}">
         <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
       </button>
@@ -185,7 +191,10 @@ function renderProducts(filteredProducts = null) {
         <div class="product-name">${product.name}</div>
         <div class="product-category">${product.category}</div>
         <div class="product-footer">
-          <div class="product-price">${formatPrice(product.price)}</div>
+          <div class="product-price">
+            ${hasDiscount ? `<span class="original-price">${formatPrice(originalPrice)}</span>` : ''}
+            ${formatPrice(Math.round(discountedPrice))}
+          </div>
           <button class="add-to-cart" onclick="addToCart(event, ${product.id})">
             <i class="fas fa-cart-plus"></i>
           </button>
@@ -193,7 +202,7 @@ function renderProducts(filteredProducts = null) {
       </div>
     </a>
   `;
-  }).join('');
+  }).join('');;
   
   // Show/hide load more button
   const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -380,6 +389,9 @@ function toggleLike(event, productId) {
   let liked = getLikedProducts();
   const index = liked.indexOf(productId);
   
+  console.log('Toggle like for product:', productId);
+  console.log('Current liked products:', liked);
+  
   if (index > -1) {
     liked.splice(index, 1);
     showToast('Removed from favorites');
@@ -389,6 +401,7 @@ function toggleLike(event, productId) {
   }
   
   localStorage.setItem('likedProducts', JSON.stringify(liked));
+  console.log('Updated liked products:', liked);
   
   // Update the button
   const btn = event.currentTarget;
@@ -532,4 +545,262 @@ document.addEventListener('DOMContentLoaded', () => {
   loadProducts();
   updateTranslations();
   updateFavoritesBadge();
+  
+  // Initialize contact form validation
+  validateContactForm();
+  
+  // Initialize referral system
+  initReferralSystem();
+});
+
+
+// ========== CONTACT FORM VALIDATION ==========
+function validateContactForm() {
+  const form = document.getElementById('contactForm');
+  if (!form) return;
+  
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    let isValid = true;
+    
+    // Name validation
+    const name = document.getElementById('contactName');
+    const nameError = document.getElementById('nameError');
+    if (name.value.trim().length < 3) {
+      nameError.textContent = 'Name must be at least 3 characters';
+      name.classList.add('error');
+      isValid = false;
+    } else {
+      nameError.textContent = '';
+      name.classList.remove('error');
+    }
+    
+    // Email validation
+    const email = document.getElementById('contactEmail');
+    const emailError = document.getElementById('emailError');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.value)) {
+      emailError.textContent = 'Please enter a valid email address';
+      email.classList.add('error');
+      isValid = false;
+    } else {
+      emailError.textContent = '';
+      email.classList.remove('error');
+    }
+    
+    // Phone validation (Rwanda format)
+    const phone = document.getElementById('contactPhone');
+    const phoneError = document.getElementById('phoneError');
+    const phoneRegex = /^(\+250|0)?[7][0-9]{8}$/;
+    if (!phoneRegex.test(phone.value.replace(/\s/g, ''))) {
+      phoneError.textContent = 'Please enter a valid Rwandan phone number';
+      phone.classList.add('error');
+      isValid = false;
+    } else {
+      phoneError.textContent = '';
+      phone.classList.remove('error');
+    }
+    
+    // Subject validation
+    const subject = document.getElementById('contactSubject');
+    const subjectError = document.getElementById('subjectError');
+    if (!subject.value) {
+      subjectError.textContent = 'Please select a subject';
+      subject.classList.add('error');
+      isValid = false;
+    } else {
+      subjectError.textContent = '';
+      subject.classList.remove('error');
+    }
+    
+    // Message validation
+    const message = document.getElementById('contactMessage');
+    const messageError = document.getElementById('messageError');
+    if (message.value.trim().length < 10) {
+      messageError.textContent = 'Message must be at least 10 characters';
+      message.classList.add('error');
+      isValid = false;
+    } else {
+      messageError.textContent = '';
+      message.classList.remove('error');
+    }
+    
+    if (isValid) {
+      // Save to localStorage
+      const contactData = {
+        name: name.value,
+        email: email.value,
+        phone: phone.value,
+        subject: subject.value,
+        message: message.value,
+        timestamp: new Date().toISOString()
+      };
+      
+      let contacts = JSON.parse(localStorage.getItem('contactSubmissions') || '[]');
+      contacts.push(contactData);
+      localStorage.setItem('contactSubmissions', JSON.stringify(contacts));
+      
+      showToast('Message sent successfully! We\'ll get back to you soon.');
+      form.reset();
+    }
+  });
+}
+
+// ========== REFERRAL SYSTEM ==========
+function initReferralSystem() {
+  // Check if user came from a referral link
+  const urlParams = new URLSearchParams(window.location.search);
+  const referralCode = urlParams.get('ref');
+  
+  if (referralCode) {
+    localStorage.setItem('referralCode', referralCode);
+    localStorage.setItem('referralDiscount', '10'); // 10% discount
+    showToast('🎉 Referral applied! You get 10% off your first order!');
+    
+    // Track referral
+    let referrals = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    if (!referrals[referralCode]) {
+      referrals[referralCode] = [];
+    }
+    referrals[referralCode].push({
+      timestamp: new Date().toISOString(),
+      converted: false
+    });
+    localStorage.setItem('referralTracking', JSON.stringify(referrals));
+  }
+  
+  // Generate user's own referral code
+  let userReferralCode = localStorage.getItem('userReferralCode');
+  if (!userReferralCode) {
+    userReferralCode = 'SIMBA' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    localStorage.setItem('userReferralCode', userReferralCode);
+  }
+  
+  // Display referral banner if user has made a purchase
+  const hasPurchased = localStorage.getItem('hasPurchased');
+  if (hasPurchased) {
+    displayReferralBanner(userReferralCode);
+  }
+}
+
+function displayReferralBanner(code) {
+  const productsSection = document.getElementById('products');
+  if (!productsSection) return;
+  
+  const banner = document.createElement('div');
+  banner.className = 'referral-banner';
+  banner.innerHTML = `
+    <div class="referral-content">
+      <h3><i class="fas fa-gift"></i> Share & Earn Rewards!</h3>
+      <p>Share your referral code with friends. They get 10% off, you get 500 RWF credit per referral!</p>
+    </div>
+    <div class="referral-code">
+      <div>
+        <div style="font-size: 0.8rem; opacity: 0.9; margin-bottom: 0.25rem;">Your Referral Code</div>
+        <div class="referral-code-text" id="userReferralCode">${code}</div>
+      </div>
+      <button class="copy-referral-btn" onclick="copyReferralCode()">
+        <i class="fas fa-copy"></i> Copy
+      </button>
+    </div>
+  `;
+  
+  productsSection.insertBefore(banner, productsSection.firstChild);
+}
+
+function copyReferralCode() {
+  const code = document.getElementById('userReferralCode').textContent;
+  const url = window.location.origin + window.location.pathname + '?ref=' + code;
+  
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Referral link copied! Share it to earn rewards!');
+  });
+}
+
+function getReferralDiscount() {
+  const discount = localStorage.getItem('referralDiscount');
+  return discount ? parseInt(discount) : 0;
+}
+
+function applyReferralDiscount(price) {
+  const discount = getReferralDiscount();
+  if (discount > 0) {
+    return price * (1 - discount / 100);
+  }
+  return price;
+}
+
+function hasReferralDiscount() {
+  return getReferralDiscount() > 0;
+}
+
+// Mark referral as converted when purchase is made
+function markReferralConverted() {
+  const referralCode = localStorage.getItem('referralCode');
+  if (referralCode) {
+    let referrals = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    if (referrals[referralCode]) {
+      const lastReferral = referrals[referralCode][referrals[referralCode].length - 1];
+      if (lastReferral && !lastReferral.converted) {
+        lastReferral.converted = true;
+        lastReferral.conversionDate = new Date().toISOString();
+        localStorage.setItem('referralTracking', JSON.stringify(referrals));
+        
+        // Award credit to referrer
+        let credits = JSON.parse(localStorage.getItem('referralCredits') || '{}');
+        credits[referralCode] = (credits[referralCode] || 0) + 500;
+        localStorage.setItem('referralCredits', JSON.stringify(credits));
+      }
+    }
+    
+    // Remove discount after first use
+    localStorage.removeItem('referralDiscount');
+  }
+}
+
+// Get user's referral stats
+function getReferralStats() {
+  const userCode = localStorage.getItem('userReferralCode');
+  const tracking = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+  const credits = JSON.parse(localStorage.getItem('referralCredits') || '{}');
+  
+  const referrals = tracking[userCode] || [];
+  const converted = referrals.filter(r => r.converted).length;
+  const totalCredits = credits[userCode] || 0;
+  
+  return {
+    totalReferrals: referrals.length,
+    convertedReferrals: converted,
+    totalCredits: totalCredits
+  };
+}
+
+
+// ========== SMOOTH SCROLL ==========
+document.addEventListener('DOMContentLoaded', () => {
+  const contactLink = document.getElementById('contactLink');
+  if (contactLink) {
+    contactLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const contactSection = document.getElementById('contact');
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+  
+  // Smooth scroll for all anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
 });
