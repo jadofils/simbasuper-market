@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simba Supermarket — Rwanda's Online Supermarket</title>
+  <title>My Favorites — Simba Supermarket</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -41,7 +39,7 @@
 
     <!-- RIGHT: Actions -->
     <div class="nav-right">
-      <a href="favorites.html" class="nav-icon-btn" title="Favorites">
+      <a href="favorites.html" class="nav-icon-btn active" title="Favorites">
         <i class="fas fa-heart"></i>
         <span class="nav-badge" id="favoritesBadge">0</span>
       </a>
@@ -66,7 +64,7 @@
   
   <!-- Mobile Bottom Nav -->
   <div class="mobile-nav">
-    <a href="index.html" class="mobile-nav-item active">
+    <a href="index.html" class="mobile-nav-item">
       <i class="fas fa-home"></i>
       <span>Home</span>
     </a>
@@ -74,10 +72,10 @@
       <i class="fas fa-th-large"></i>
       <span>Categories</span>
     </button>
-    <button class="mobile-nav-item" id="mobileFavoritesBtn" onclick="window.location.href='favorites.html'">
+    <a href="favorites.html" class="mobile-nav-item active">
       <i class="fas fa-heart"></i>
       <span>Favorites</span>
-    </button>
+    </a>
     <a href="cart.html" class="mobile-nav-item">
       <i class="fas fa-shopping-cart"></i>
       <span>Cart</span>
@@ -86,57 +84,72 @@
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-content">
-    <h1 id="heroTitle">Rwanda's Favourite Online Supermarket</h1>
-    <p id="heroSub">552 products. Fast delivery. Pay with MoMo.</p>
-    <a href="#products" class="btn-primary" id="heroBtn">Shop Now</a>
-  </div>
-  <div class="hero-img">
-    <i class="fas fa-store"></i>
-  </div>
-</section>
-
-<!-- CATEGORIES -->
-<section class="section" id="categories">
-  <div class="section-header">
-    <h2 class="section-title" id="catTitle">Shop by Category</h2>
-    <div class="category-controls">
-      <div class="search-bar-inline">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" id="categorySearch" placeholder="Search categories..." autocomplete="off" />
-      </div>
-      <select id="categorySort" class="filter-select">
-        <option value="name">Sort by Name</option>
-        <option value="count">Sort by Count</option>
-      </select>
+<!-- FAVORITES PAGE -->
+<div class="favorites-page">
+  <div class="favorites-header">
+    <div class="favorites-title-section">
+      <h1><i class="fas fa-heart"></i> My Favorites</h1>
+      <p id="favoritesCount">0 items saved</p>
+    </div>
+    <div class="favorites-actions">
+      <button class="btn-outline" id="clearAllBtn">
+        <i class="fas fa-trash"></i> Clear All
+      </button>
+      <button class="btn-primary" id="addAllToCartBtn">
+        <i class="fas fa-cart-plus"></i> Add All to Cart
+      </button>
     </div>
   </div>
-  <div class="categories-grid" id="categoriesGrid"></div>
-</section>
 
-<!-- PRODUCTS -->
-<section class="section" id="products">
-  <div class="products-header">
-    <h2 class="section-title" id="productsTitle">All Products</h2>
-    <div class="filters">
-      <select id="categoryFilter" class="filter-select">
-        <option value="">All Categories</option>
-      </select>
-      <select id="sortSelect" class="filter-select">
-        <option value="">Sort by</option>
-        <option value="price-asc">Price: Low → High</option>
-        <option value="price-desc">Price: High → Low</option>
-        <option value="name-asc">Name: A → Z</option>
-      </select>
+  <!-- Filter Tabs -->
+  <div class="favorites-tabs">
+    <button class="favorites-tab active" data-filter="all">
+      <i class="fas fa-th"></i> All <span class="tab-count" id="allCount">0</span>
+    </button>
+    <button class="favorites-tab" data-filter="Cosmetics & Personal Care">
+      <i class="fas fa-spray-can"></i> Cosmetics <span class="tab-count" id="cosmeticsCount">0</span>
+    </button>
+    <button class="favorites-tab" data-filter="Food Products">
+      <i class="fas fa-apple-alt"></i> Food <span class="tab-count" id="foodCount">0</span>
+    </button>
+    <button class="favorites-tab" data-filter="Alcoholic Drinks">
+      <i class="fas fa-wine-bottle"></i> Drinks <span class="tab-count" id="drinksCount">0</span>
+    </button>
+    <button class="favorites-tab" data-filter="Kitchenware & Electronics">
+      <i class="fas fa-blender"></i> Kitchen <span class="tab-count" id="kitchenCount">0</span>
+    </button>
+    <button class="favorites-tab" data-filter="other">
+      <i class="fas fa-ellipsis-h"></i> Other <span class="tab-count" id="otherCount">0</span>
+    </button>
+  </div>
+
+  <!-- Sort Options -->
+  <div class="favorites-sort">
+    <select id="favoritesSort" class="filter-select">
+      <option value="recent">Recently Added</option>
+      <option value="name">Name A-Z</option>
+      <option value="price-low">Price: Low to High</option>
+      <option value="price-high">Price: High to Low</option>
+    </select>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="favorites-grid" id="favoritesGrid">
+    <!-- Products will be loaded here -->
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-favorites" id="emptyFavorites" style="display: none;">
+    <div class="empty-icon">
+      <i class="fas fa-heart-broken"></i>
     </div>
+    <h2>No Favorites Yet</h2>
+    <p>Start adding products you love to see them here!</p>
+    <a href="index.html" class="btn-primary">
+      <i class="fas fa-shopping-bag"></i> Browse Products
+    </a>
   </div>
-  <div class="products-grid" id="productsGrid"></div>
-  <div class="load-more-wrap">
-    <button class="btn-outline" id="loadMoreBtn">Load More</button>
-  </div>
-</section>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -162,5 +175,6 @@
 </footer>
 
 <script src="app.js"></script>
+<script src="favorites.js"></script>
 </body>
 </html>

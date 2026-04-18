@@ -232,11 +232,24 @@ function addToCart(event, productId) {
 // Update cart badge
 function updateCartBadge() {
   const badge = document.getElementById('cartBadge');
-  if (!badge) return;
+  const mobileBadge = document.getElementById('mobileCartBadge');
   
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  badge.textContent = totalItems;
+  
+  if (badge) badge.textContent = totalItems;
+  if (mobileBadge) mobileBadge.textContent = totalItems;
+}
+
+// Update favorites badge
+function updateFavoritesBadge() {
+  const badge = document.getElementById('favoritesBadge');
+  const liked = getLikedProducts();
+  
+  if (badge) {
+    badge.textContent = liked.length;
+    badge.style.display = liked.length > 0 ? 'flex' : 'none';
+  }
 }
 
 // Show toast notification
@@ -390,6 +403,8 @@ function toggleLike(event, productId) {
     icon.className = 'fas fa-heart';
     btn.title = 'Unlike';
   }
+  
+  updateFavoritesBadge();
 }
 
 // Load more products
@@ -516,4 +531,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load products
   loadProducts();
   updateTranslations();
+  updateFavoritesBadge();
 });

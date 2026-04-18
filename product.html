@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Product — Simba Supermarket</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
@@ -12,26 +14,73 @@
 
 <nav class="navbar">
   <div class="nav-inner">
-    <a href="index.html" class="logo">
-      <i class="fas fa-shopping-bag logo-icon"></i>
-      <span class="logo-text">Simba</span>
-    </a>
-    <div class="search-bar">
-      <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off" />
+    <!-- LEFT: Logo & Category Menu -->
+    <div class="nav-left">
+      <a href="index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+      <button class="categories-menu-btn" id="categoriesMenuBtn">
+        <i class="fas fa-bars"></i>
+        <span>Categories</span>
+      </button>
     </div>
-    <div class="nav-actions">
+
+    <!-- CENTER: Search Bar -->
+    <div class="nav-center">
+      <div class="search-bar">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off" />
+        <button class="search-btn">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Actions -->
+    <div class="nav-right">
+      <a href="favorites.html" class="nav-icon-btn" title="Favorites">
+        <i class="fas fa-heart"></i>
+        <span class="nav-badge" id="favoritesBadge">0</span>
+      </a>
+      
       <select id="langSelect" class="lang-select">
-        <option value="en">EN</option>
-        <option value="fr">FR</option>
-        <option value="rw">RW</option>
+        <option value="en">🇬🇧 EN</option>
+        <option value="fr">🇫🇷 FR</option>
+        <option value="rw">🇷🇼 RW</option>
       </select>
-      <button id="themeToggle" class="icon-btn"><i class="fas fa-moon"></i></button>
+      
+      <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      
       <a href="cart.html" class="cart-btn">
         <i class="fas fa-shopping-cart"></i>
         <span class="cart-badge" id="cartBadge">0</span>
+        <span class="cart-text">Cart</span>
       </a>
     </div>
+  </div>
+  
+  <!-- Mobile Bottom Nav -->
+  <div class="mobile-nav">
+    <a href="index.html" class="mobile-nav-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <button class="mobile-nav-item" id="mobileCategoriesBtn">
+      <i class="fas fa-th-large"></i>
+      <span>Categories</span>
+    </button>
+    <a href="favorites.html" class="mobile-nav-item">
+      <i class="fas fa-heart"></i>
+      <span>Favorites</span>
+    </a>
+    <a href="cart.html" class="mobile-nav-item">
+      <i class="fas fa-shopping-cart"></i>
+      <span>Cart</span>
+      <span class="mobile-badge" id="mobileCartBadge">0</span>
+    </a>
   </div>
 </nav>
 

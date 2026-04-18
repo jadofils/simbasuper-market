@@ -202,11 +202,39 @@ function formatPrice(price) {
 // Update cart badge
 function updateCartBadge() {
   const badge = document.getElementById('cartBadge');
-  if (!badge) return;
+  const mobileBadge = document.getElementById('mobileCartBadge');
   
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  badge.textContent = totalItems;
+  
+  if (badge) badge.textContent = totalItems;
+  if (mobileBadge) mobileBadge.textContent = totalItems;
+}
+
+// Update favorites badge
+function updateFavoritesBadge() {
+  const badge = document.getElementById('favoritesBadge');
+  const liked = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+  
+  if (badge) {
+    badge.textContent = liked.length;
+    badge.style.display = liked.length > 0 ? 'flex' : 'none';
+  }
+}
+
+// Theme toggle
+function toggleTheme() {
+  const html = document.documentElement;
+  const currentTheme = html.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  
+  const icon = document.querySelector('#themeToggle i');
+  if (icon) {
+    icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  }
 }
 
 // Show toast
@@ -226,8 +254,23 @@ function showToast(message) {
 document.addEventListener('DOMContentLoaded', () => {
   currentLang = localStorage.getItem('language') || 'en';
   
+  // Load saved theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const themeIcon = document.querySelector('#themeToggle i');
+  if (themeIcon) {
+    themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  }
+  
+  // Theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
+  
   loadProducts();
   updateCartBadge();
+  updateFavoritesBadge();
   
   // Update related products title
   const relatedTitle = document.querySelector('.related-section .section-title');

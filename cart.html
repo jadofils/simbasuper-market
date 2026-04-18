@@ -1,133 +1,226 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cart & Checkout — Simba Supermarket</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cart & Checkout — Simba Supermarket</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-inner">
+        <!-- LEFT: Logo & Category Menu -->
+        <div class="nav-left">
+          <a href="index.html" class="logo">
+            <i class="fas fa-shopping-bag logo-icon"></i>
+            <span class="logo-text">Simba</span>
+          </a>
+          <button class="categories-menu-btn" id="categoriesMenuBtn">
+            <i class="fas fa-bars"></i>
+            <span>Categories</span>
+          </button>
+        </div>
 
-<nav class="navbar">
-  <div class="nav-inner">
-    <a href="index.html" class="logo">
-      <i class="fas fa-shopping-bag logo-icon"></i>
-      <span class="logo-text">Simba</span>
-    </a>
-    <div class="nav-actions">
-      <select id="langSelect" class="lang-select">
-        <option value="en">EN</option>
-        <option value="fr">FR</option>
-        <option value="rw">RW</option>
-      </select>
-      <button id="themeToggle" class="icon-btn"><i class="fas fa-moon"></i></button>
-      <a href="cart.html" class="cart-btn">
-        <i class="fas fa-shopping-cart"></i>
-        <span class="cart-badge" id="cartBadge">0</span>
-      </a>
-    </div>
-  </div>
-</nav>
+        <!-- CENTER: Search Bar -->
+        <div class="nav-center">
+          <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off" />
+            <button class="search-btn">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
 
-<div class="section">
-  <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
-  <h1 class="section-title" id="cartTitle">Your Cart</h1>
-
-  <div class="cart-layout" id="cartLayout">
-    <!-- Cart items + summary injected by JS -->
-  </div>
-</div>
-
-<!-- CHECKOUT MODAL -->
-<div class="modal-overlay" id="checkoutModal" style="display:none">
-  <div class="modal">
-    <button class="modal-close" id="closeModal"><i class="fas fa-times"></i></button>
-    <h2 id="checkoutTitle">Checkout</h2>
-
-    <!-- Step 1: Details -->
-    <div id="step1">
-      <div class="form-group">
-        <label id="labelName">Full Name</label>
-        <input type="text" id="custName" placeholder="Jean Pierre Habimana" />
-      </div>
-      <div class="form-group">
-        <label id="labelPhone">Phone Number</label>
-        <input type="tel" id="custPhone" placeholder="078 000 0000" />
-      </div>
-      <div class="form-group">
-        <label id="labelAddress">Delivery Address</label>
-        <input type="text" id="custAddress" placeholder="Kigali, Nyarugenge" />
-      </div>
-      <div class="form-group">
-        <label id="labelPayment">Payment Method</label>
-        <div class="payment-options">
-          <label class="pay-option">
-            <input type="radio" name="payment" value="momo" checked />
-            <span class="pay-card momo"><i class="fas fa-mobile-alt"></i> MTN MoMo</span>
-          </label>
-          <label class="pay-option">
-            <input type="radio" name="payment" value="airtel" />
-            <span class="pay-card airtel"><i class="fas fa-mobile-alt"></i> Airtel Money</span>
-          </label>
-          <label class="pay-option">
-            <input type="radio" name="payment" value="cash" />
-            <span class="pay-card cash"><i class="fas fa-money-bill-wave"></i> Cash on Delivery</span>
-          </label>
+        <!-- RIGHT: Actions -->
+        <div class="nav-right">
+          <a href="favorites.html" class="nav-icon-btn" title="Favorites">
+            <i class="fas fa-heart"></i>
+            <span class="nav-badge" id="favoritesBadge">0</span>
+          </a>
+          
+          <select id="langSelect" class="lang-select">
+            <option value="en">🇬🇧 EN</option>
+            <option value="fr">🇫🇷 FR</option>
+            <option value="rw">🇷🇼 RW</option>
+          </select>
+          
+          <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+            <i class="fas fa-moon"></i>
+          </button>
+          
+          <a href="cart.html" class="cart-btn active">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-badge" id="cartBadge">0</span>
+            <span class="cart-text">Cart</span>
+          </a>
         </div>
       </div>
-      <button class="btn-primary full-width" id="proceedBtn">Proceed to Pay</button>
+      
+      <!-- Mobile Bottom Nav -->
+      <div class="mobile-nav">
+        <a href="index.html" class="mobile-nav-item">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <button class="mobile-nav-item" id="mobileCategoriesBtn">
+          <i class="fas fa-th-large"></i>
+          <span>Categories</span>
+        </button>
+        <a href="favorites.html" class="mobile-nav-item">
+          <i class="fas fa-heart"></i>
+          <span>Favorites</span>
+        </a>
+        <a href="cart.html" class="mobile-nav-item active">
+          <i class="fas fa-shopping-cart"></i>
+          <span>Cart</span>
+          <span class="mobile-badge" id="mobileCartBadge">0</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="section">
+      <a href="index.html" class="back-link"
+        ><i class="fas fa-arrow-left"></i> Continue Shopping</a
+      >
+      <h1 class="section-title" id="cartTitle">Your Cart</h1>
+
+      <div class="cart-layout" id="cartLayout">
+        <!-- Cart items + summary injected by JS -->
+      </div>
     </div>
 
-    <!-- Step 2: MoMo PIN -->
-    <div id="step2" style="display:none">
-      <div class="momo-screen">
-        <div class="momo-logo"><i class="fas fa-mobile-alt"></i></div>
-        <h3 id="momoTitle">MTN Mobile Money</h3>
-        <p id="momoInstructions">Enter your MoMo PIN to confirm payment</p>
-        <div class="pin-display" id="pinDisplay">● ● ● ● ●</div>
-        <div class="pin-pad">
-          <button class="pin-btn" data-val="1">1</button>
-          <button class="pin-btn" data-val="2">2</button>
-          <button class="pin-btn" data-val="3">3</button>
-          <button class="pin-btn" data-val="4">4</button>
-          <button class="pin-btn" data-val="5">5</button>
-          <button class="pin-btn" data-val="6">6</button>
-          <button class="pin-btn" data-val="7">7</button>
-          <button class="pin-btn" data-val="8">8</button>
-          <button class="pin-btn" data-val="9">9</button>
-          <button class="pin-btn" data-val="clear"><i class="fas fa-backspace"></i></button>
-          <button class="pin-btn" data-val="0">0</button>
-          <button class="pin-btn confirm-pin" id="confirmPin"><i class="fas fa-check"></i></button>
+    <!-- CHECKOUT MODAL -->
+    <div class="modal-overlay" id="checkoutModal" style="display: none">
+      <div class="modal">
+        <button class="modal-close" id="closeModal">
+          <i class="fas fa-times"></i>
+        </button>
+        <h2 id="checkoutTitle">Checkout</h2>
+
+        <!-- Step 1: Details -->
+        <div id="step1">
+          <div class="form-group">
+            <label id="labelName">Full Name</label>
+            <input
+              type="text"
+              id="custName"
+              placeholder="Jean Pierre Habimana"
+            />
+          </div>
+          <div class="form-group">
+            <label id="labelPhone">Phone Number</label>
+            <input type="tel" id="custPhone" placeholder="078 000 0000" />
+          </div>
+          <div class="form-group">
+            <label id="labelAddress">Delivery Address</label>
+            <input
+              type="text"
+              id="custAddress"
+              placeholder="Kigali, Nyarugenge"
+            />
+          </div>
+          <div class="form-group">
+            <label id="labelPayment">Payment Method</label>
+            <div class="payment-options">
+              <label class="pay-option">
+                <input type="radio" name="payment" value="momo" checked />
+                <span class="pay-card momo"
+                  ><i class="fas fa-mobile-alt"></i> MTN MoMo</span
+                >
+              </label>
+              <label class="pay-option">
+                <input type="radio" name="payment" value="airtel" />
+                <span class="pay-card airtel"
+                  ><i class="fas fa-mobile-alt"></i> Airtel Money</span
+                >
+              </label>
+              <label class="pay-option">
+                <input type="radio" name="payment" value="cash" />
+                <span class="pay-card cash"
+                  ><i class="fas fa-money-bill-wave"></i> Cash on Delivery</span
+                >
+              </label>
+            </div>
+          </div>
+          <button class="btn-primary full-width" id="proceedBtn">
+            Proceed to Pay
+          </button>
         </div>
-        <p class="momo-amount" id="momoAmount"></p>
+
+        <!-- Step 2: MoMo PIN -->
+        <div id="step2" style="display: none">
+          <div class="momo-screen">
+            <div class="momo-logo"><i class="fas fa-mobile-alt"></i></div>
+            <h3 id="momoTitle">MTN Mobile Money</h3>
+            <p id="momoInstructions">Enter your MoMo PIN to confirm payment</p>
+            <div class="pin-display" id="pinDisplay">● ● ● ● ●</div>
+            <div class="pin-pad">
+              <button class="pin-btn" data-val="1">1</button>
+              <button class="pin-btn" data-val="2">2</button>
+              <button class="pin-btn" data-val="3">3</button>
+              <button class="pin-btn" data-val="4">4</button>
+              <button class="pin-btn" data-val="5">5</button>
+              <button class="pin-btn" data-val="6">6</button>
+              <button class="pin-btn" data-val="7">7</button>
+              <button class="pin-btn" data-val="8">8</button>
+              <button class="pin-btn" data-val="9">9</button>
+              <button class="pin-btn" data-val="clear">
+                <i class="fas fa-backspace"></i>
+              </button>
+              <button class="pin-btn" data-val="0">0</button>
+              <button class="pin-btn confirm-pin" id="confirmPin">
+                <i class="fas fa-check"></i>
+              </button>
+            </div>
+            <p class="momo-amount" id="momoAmount"></p>
+          </div>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div id="step3" style="display: none">
+          <div class="success-screen">
+            <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+            <h3 id="successTitle">Order Confirmed!</h3>
+            <p id="successMsg">Your order has been placed successfully.</p>
+            <p id="orderRef"></p>
+            <a href="index.html" class="btn-primary full-width" id="backShopBtn"
+              >Back to Shop</a
+            >
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Step 3: Success -->
-    <div id="step3" style="display:none">
-      <div class="success-screen">
-        <div class="success-icon"><i class="fas fa-check-circle"></i></div>
-        <h3 id="successTitle">Order Confirmed!</h3>
-        <p id="successMsg">Your order has been placed successfully.</p>
-        <p id="orderRef"></p>
-        <a href="index.html" class="btn-primary full-width" id="backShopBtn">Back to Shop</a>
+    <div class="toast" id="toast"></div>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-logo">
+            <i class="fas fa-shopping-bag"></i
+            ><span class="logo-text">Simba Supermarket</span>
+          </div>
+          <p><i class="fas fa-map-marker-alt"></i> Kigali, Rwanda</p>
+        </div>
+        <div><p>© 2025 Simba Supermarket</p></div>
       </div>
-    </div>
-  </div>
-</div>
+    </footer>
 
-<div class="toast" id="toast"></div>
-
-<footer class="footer">
-  <div class="footer-inner">
-    <div><div class="footer-logo"><i class="fas fa-shopping-bag"></i><span class="logo-text">Simba Supermarket</span></div><p><i class="fas fa-map-marker-alt"></i> Kigali, Rwanda</p></div>
-    <div><p>© 2025 Simba Supermarket</p></div>
-  </div>
-</footer>
-
-<script src="app.js"></script>
-<script src="cart.js"></script>
-</body>
+    <script src="app.js"></script>
+    <script src="cart.js"></script>
+  </body>
 </html>
