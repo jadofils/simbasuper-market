@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard — Simba Supermarket</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    .dashboard-layout { display: flex; min-height: calc(100vh - 80px); }
+    .sidebar { width: 260px; background: var(--card-bg); border-right: 2px solid var(--border); padding: 2rem 0; position: sticky; top: 80px; height: calc(100vh - 80px); overflow-y: auto; }
+    .sidebar-menu { list-style: none; padding: 0; margin: 0; }
+    .sidebar-menu li { margin-bottom: 0.5rem; }
+    .sidebar-menu a { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; color: var(--text); text-decoration: none; transition: all 0.3s; border-left: 3px solid transparent; }
+    .sidebar-menu a:hover, .sidebar-menu a.active { background: var(--surface); border-left-color: var(--accent); color: var(--accent); }
+    .sidebar-menu i { font-size: 1.2rem; width: 24px; }
+    .dashboard-content { flex: 1; padding: 2rem; max-width: 1400px; }
+    .dashboard-header { margin-bottom: 2rem; }
+    .welcome-section h1 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--text); }
+    .welcome-section p { color: var(--text-light); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+    .stat-card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; transition: transform 0.3s; }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-card .icon { font-size: 2.5rem; color: var(--accent); margin-bottom: 0.5rem; }
+    .stat-card .value { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 0.25rem; }
+    .stat-card .label { color: var(--text-light); font-size: 0.9rem; }
+    .section-card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
+    .section-card h2 { margin-bottom: 1.5rem; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--primary); color: white; padding: 1rem; text-align: left; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+    .status-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+    .status-confirmed { background: var(--success-bg); color: var(--success); }
+    .referral-card { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; }
+    .referral-code-box { background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; text-align: center; margin: 1rem 0; }
+    .referral-code-box .code { font-size: 2rem; font-weight: 800; letter-spacing: 3px; font-family: monospace; }
+    @media (max-width: 768px) {
+      .dashboard-layout { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: 2px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+    </div>
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0;">My Dashboard</h2>
+    </div>
+    <div class="nav-right">
+      <a href="index.html" class="btn-outline">
+        <i class="fas fa-shopping-bag"></i> Shop
+      </a>
+      <button class="btn-outline" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <ul class="sidebar-menu">
+      <li><a href="#overview" class="active" onclick="showSection('overview')"><i class="fas fa-home"></i> Overview</a></li>
+      <li><a href="#orders" onclick="showSection('orders')"><i class="fas fa-shopping-cart"></i> My Orders</a></li>
+      <li><a href="#favorites" onclick="showSection('favorites')"><i class="fas fa-heart"></i> Favorites</a></li>
+      <li><a href="#referrals" onclick="showSection('referrals')"><i class="fas fa-gift"></i> Referrals</a></li>
+      <li><a href="#profile" onclick="showSection('profile')"><i class="fas fa-user"></i> Profile</a></li>
+      <li><a href="index.html"><i class="fas fa-shopping-bag"></i> Continue Shopping</a></li>
+      <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </aside>
+  
+  <div class="dashboard-content">
+  <div class="dashboard-header">
+    <div class="welcome-section">
+      <h1>Welcome back, <span id="userName"></span>! 👋</h1>
+      <p>Here's what's happening with your account</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon"><i class="fas fa-shopping-cart"></i></div>
+      <div class="value" id="totalOrders">0</div>
+      <div class="label">Total Orders</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+      <div class="value" id="totalSpent">0 RWF</div>
+      <div class="label">Total Spent</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon"><i class="fas fa-heart"></i></div>
+      <div class="value" id="totalFavorites">0</div>
+      <div class="label">Favorites</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon"><i class="fas fa-gift"></i></div>
+      <div class="value" id="referralCredits">0 RWF</div>
+      <div class="label">Referral Credits</div>
+    </div>
+  </div>
+
+  <!-- Referral Card -->
+  <div class="referral-card">
+    <h2 style="color: white; margin-bottom: 1rem;"><i class="fas fa-gift"></i> Your Referral Program</h2>
+    <p>Share your code and earn 500 RWF for each friend who makes a purchase!</p>
+    <div class="referral-code-box">
+      <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">Your Referral Code</div>
+      <div class="code" id="userReferralCode">LOADING...</div>
+    </div>
+    <button class="btn-primary" onclick="copyReferralLink()" style="width: 100%;">
+      <i class="fas fa-copy"></i> Copy Referral Link
+    </button>
+    <div style="margin-top: 1rem; text-align: center;">
+      <strong id="referralStats">0 referrals • 0 converted</strong>
+    </div>
+  </div>
+
+  <!-- Order History -->
+  <div class="section-card">
+    <h2><i class="fas fa-history"></i> Order History</h2>
+    <div id="orderHistory"></div>
+  </div>
+
+  <!-- Profile Info -->
+  <div class="section-card">
+    <h2><i class="fas fa-user"></i> Profile Information</h2>
+    <div id="profileInfo"></div>
+  </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script>
+  let currentUser = null;
+
+  function checkAuth() {
+    const userStr = sessionStorage.getItem('currentUser');
+    if (!userStr) {
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUser = JSON.parse(userStr);
+    if (currentUser.role !== 'customer') {
+      window.location.href = 'admin-dashboard.html';
+      return;
+    }
+    loadDashboard();
+  }
+
+  function loadDashboard() {
+    document.getElementById('userName').textContent = currentUser.name;
+    
+    // Load stats
+    loadStats();
+    loadOrderHistory();
+    loadProfile();
+    loadReferralInfo();
+  }
+
+  function loadStats() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+    
+    const totalSpent = userOrders.reduce((sum, o) => sum + o.total, 0);
+    const favorites = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+    
+    const userCode = localStorage.getItem('userReferralCode');
+    const credits = JSON.parse(localStorage.getItem('referralCredits') || '{}');
+    const userCredits = credits[userCode] || 0;
+    
+    document.getElementById('totalOrders').textContent = userOrders.length;
+    document.getElementById('totalSpent').textContent = totalSpent.toLocaleString() + ' RWF';
+    document.getElementById('totalFavorites').textContent = favorites.length;
+    document.getElementById('referralCredits').textContent = userCredits.toLocaleString() + ' RWF';
+  }
+
+  function loadOrderHistory() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+    
+    if (userOrders.length === 0) {
+      document.getElementById('orderHistory').innerHTML = '<p style="color: var(--text-light);">No orders yet. <a href="index.html">Start shopping!</a></p>';
+      return;
+    }
+    
+    const html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${userOrders.reverse().map(order => `
+            <tr>
+              <td>${order.orderRef}</td>
+              <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+              <td>${order.items.length} items</td>
+              <td>${order.total.toLocaleString()} RWF</td>
+              <td><span class="status-badge status-confirmed">${order.status}</span></td>
+              <td><button class="btn-outline" onclick="viewOrderDetails('${order.orderRef}')">View</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    
+    document.getElementById('orderHistory').innerHTML = html;
+  }
+
+  function loadProfile() {
+    const html = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div>
+          <strong>Name:</strong><br>${currentUser.name}
+        </div>
+        <div>
+          <strong>Email:</strong><br>${currentUser.email}
+        </div>
+        <div>
+          <strong>Phone:</strong><br>${currentUser.phone}
+        </div>
+        <div>
+          <strong>Member Since:</strong><br>${new Date(currentUser.createdAt).toLocaleDateString()}
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('profileInfo').innerHTML = html;
+  }
+
+  function loadReferralInfo() {
+    let userCode = localStorage.getItem('userReferralCode');
+    if (!userCode) {
+      userCode = 'SIMBA' + Math.random().toString(36).substr(2, 6).toUpperCase();
+      localStorage.setItem('userReferralCode', userCode);
+    }
+    
+    document.getElementById('userReferralCode').textContent = userCode;
+    
+    const tracking = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    const referrals = tracking[userCode] || [];
+    const converted = referrals.filter(r => r.converted).length;
+    
+    document.getElementById('referralStats').textContent = 
+      `${referrals.length} referrals • ${converted} converted`;
+  }
+
+  function copyReferralLink() {
+    const code = document.getElementById('userReferralCode').textContent;
+    const url = window.location.origin + '/index.html?ref=' + code;
+    
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Referral link copied! Share it to earn rewards!');
+    });
+  }
+
+  function viewOrderDetails(orderRef) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = orders.find(o => o.orderRef === orderRef);
+    
+    if (order) {
+      // Generate and view receipt
+      if (typeof generateReceipt === 'function') {
+        generateReceipt(order);
+      } else {
+        alert('Order: ' + orderRef + '\nTotal: ' + order.total.toLocaleString() + ' RWF');
+      }
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('isLoggedIn');
+    window.location.href = 'login.html';
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function showSection(section) {
+    document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+    event.target.closest('a').classList.add('active');
+  }
+
+  window.onload = checkAuth;
+</script>
+
+</body>
+</html>

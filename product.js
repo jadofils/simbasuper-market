@@ -93,6 +93,11 @@ function shareProduct(platform) {
   const referralUrl = url.includes('?') ? `${url}&ref=${userReferralCode}` : `${url}?ref=${userReferralCode}`;
   const text = `Check out ${currentProduct.name} at Simba Supermarket! Use my code for 10% off: ${userReferralCode}`;
   
+  // Track the share
+  if (typeof trackSocialShare === 'function') {
+    trackSocialShare(platform, currentProduct.id, currentProduct.name);
+  }
+  
   switch(platform) {
     case 'facebook':
       window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralUrl)}`, '_blank');

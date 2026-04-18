@@ -804,3 +804,171 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+
+// ========== ENHANCED REFERRAL & SOCIAL TRACKING ==========
+
+// Track social media shares
+function trackSocialShare(platform, productId, productName) {
+  const userCode = localStorage.getItem('userReferralCode');
+  if (!userCode) return;
+  
+  let shareTracking = JSON.parse(localStorage.getItem('socialShareTracking') || '{}');
+  
+  if (!shareTracking[userCode]) {
+    shareTracking[userCode] = {
+      facebook: [],
+      twitter: [],
+      whatsapp: [],
+      copy: [],
+      totalShares: 0
+    };
+  }
+  
+  const shareData = {
+    productId: productId,
+    productName: productName,
+    timestamp: new Date().toISOString(),
+    platform: platform
+  };
+  
+  shareTracking[userCode][platform].push(shareData);
+  shareTracking[userCode].totalShares++;
+  
+  localStorage.setItem('socialShareTracking', JSON.stringify(shareTracking));
+  
+  console.log('Share tracked:', platform, productName);
+}
+
+// Get share statistics
+function getShareStats() {
+  const userCode = localStorage.getItem('userReferralCode');
+  const tracking = JSON.parse(localStorage.getItem('socialShareTracking') || '{}');
+  
+  if (!userCode || !tracking[userCode]) {
+    return {
+      facebook: 0,
+      twitter: 0,
+      whatsapp: 0,
+      copy: 0,
+      totalShares: 0,
+      mostSharedProduct: null
+    };
+  }
+  
+  const userShares = tracking[userCode];
+  
+  // Find most shared product
+  const productCounts = {};
+  ['facebook', 'twitter', 'whatsapp', 'copy'].forEach(platform => {
+    userShares[platform].forEach(share => {
+      productCounts[share.productName] = (productCounts[share.productName] || 0) + 1;
+    });
+  });
+  
+  const mostShared = Object.keys(productCounts).reduce((a, b) => 
+    productCounts[a] > productCounts[b] ? a : b, null
+  );
+  
+  return {
+    facebook: userShares.facebook.length,
+    twitter: userShares.twitter.length,
+    whatsapp: userShares.whatsapp.length,
+    copy: userShares.copy.length,
+    totalShares: userShares.totalShares,
+    mostSharedProduct: mostShared
+  };
+}
+
+// Track customer data
+function trackCustomer(customerData) {
+  let customers = JSON.parse(localStorage.getItem('customerDatabase') || '[]');
+  
+  const customer = {
+    id: 'CUST-' + Date.now(),
+    name: customerData.name,
+    phone: customerData.phone,
+    address: customerData.address,
+    registeredDate: new Date().toISOString(),
+    totalOrders: 1,
+    totalSpent: customerData.orderTotal,
+    referralCode: localStorage.getItem('referralCode') || null,
+    lastOrderDate: new Date().toISOString()
+  };
+  
+  // Check if customer exists
+  const existingIndex = customers.findIndex(c => c.phone === customerData.phone);
+  
+  if (existingIndex > -1) {
+    customers[existingIndex].totalOrders++;
+    customers[existingIndex].totalSpent += customerData.orderTotal;
+    customers[existingIndex].lastOrderDate = new Date().toISOString();
+  } else {
+    customers.push(customer);
+  }
+  
+  localStorage.setItem('customerDatabase', JSON.stringify(customers));
+  
+  return customer;
+}
+
+// Get customer statistics
+function getCustomerStats() {
+  const customers = JSON.parse(localStorage.getItem('customerDatabase') || '[]');
+  
+  return {
+    totalCustomers: customers.length,
+    totalRevenue: customers.reduce((sum, c) => sum + c.totalSpent, 0),
+    totalOrders: customers.reduce((sum, c) => sum + c.totalOrders, 0),
+    averageOrderValue: customers.length > 0 
+      ? customers.reduce((sum, c) => sum + c.totalSpent, 0) / customers.reduce((sum, c) => sum + c.totalOrders, 0)
+      : 0,
+    referredCustomers: customers.filter(c => c.referralCode).length
+  };
+}
+
+// View all tracking data (Admin function)
+function viewAllTrackingData() {
+  console.log('=== REFERRAL TRACKING ===');
+  console.log(JSON.parse(localStorage.getItem('referralTracking') || '{}'));
+  
+  console.log('\n=== SOCIAL SHARE TRACKING ===');
+  console.log(JSON.parse(localStorage.getItem('socialShareTracking') || '{}'));
+  
+  console.log('\n=== CUSTOMER DATABASE ===');
+  console.log(JSON.parse(localStorage.getItem('customerDatabase') || '[]'));
+  
+  console.log('\n=== REFERRAL CREDITS ===');
+  console.log(JSON.parse(localStorage.getItem('referralCredits') || '{}'));
+  
+  console.log('\n=== SHARE STATS ===');
+  console.log(getShareStats());
+  
+  console.log('\n=== CUSTOMER STATS ===');
+  console.log(getCustomerStats());
+}
+
+// Make function available globally
+window.viewAllTrackingData = viewAllTrackingData;
+window.getShareStats = getShareStats;
+window.getCustomerStats = getCustomerStats;
+
+
+// ========== AUTH STATUS ==========
+function updateAuthButton() {
+  const loginBtn = document.getElementById('loginBtn');
+  if (!loginBtn) return;
+  
+  const userStr = sessionStorage.getItem('currentUser');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    loginBtn.href = user.role === 'admin' ? 'dashboard.html' : 'customer-dashboard.html';
+    loginBtn.title = 'My Dashboard';
+    loginBtn.innerHTML = '<i class="fas fa-user-circle"></i>';
+  }
+}
+
+// Call on page load
+document.addEventListener('DOMContentLoaded', () => {
+  updateAuthButton();
+});
