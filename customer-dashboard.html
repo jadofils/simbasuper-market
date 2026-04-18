@@ -34,6 +34,23 @@
     .referral-card { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: white; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; }
     .referral-code-box { background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; text-align: center; margin: 1rem 0; }
     .referral-code-box .code { font-size: 2rem; font-weight: 800; letter-spacing: 3px; font-family: monospace; }
+    .dashboard-section { display: none; }
+    .dashboard-section.active { display: block; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+    .modal-content { background: var(--card-bg); border-radius: 20px; padding: 2rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-header h2 { margin: 0; color: var(--text); }
+    .close-modal { background: none; border: none; font-size: 2rem; cursor: pointer; color: var(--text-light); }
+    .invoice-item { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+    .payment-upload { margin: 1.5rem 0; padding: 1.5rem; border: 2px dashed var(--border); border-radius: 12px; text-align: center; }
+    .payment-upload input[type="file"] { display: none; }
+    .upload-label { display: inline-block; padding: 0.75rem 1.5rem; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; }
+    .upload-preview { margin-top: 1rem; max-width: 100%; border-radius: 8px; }
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+    .product-card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; transition: transform 0.3s; }
+    .product-card:hover { transform: translateY(-5px); }
+    .product-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem; }
     @media (max-width: 768px) {
       .dashboard-layout { flex-direction: column; }
       .sidebar { width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: 2px solid var(--border); }
@@ -50,8 +67,19 @@
         <span class="logo-text">Simba</span>
       </a>
     </div>
+    <!-- CENTER: Search Bar -->
     <div class="nav-center">
       <h2 style="color: var(--text); margin: 0;">My Dashboard</h2>
+      <div class="search-bar" style="max-width: 400px; margin-left: 2rem;">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="dashboardSearch" placeholder="Search orders, products..." autocomplete="off" />
+        <button class="ai-search-btn" onclick="openImageSearch()" title="Search by Image">
+          <i class="fas fa-camera"></i>
+        </button>
+        <button class="ai-search-btn" onclick="toggleVoiceSearch()" title="Voice Search" id="voiceSearchBtn">
+          <i class="fas fa-microphone"></i>
+        </button>
+      </div>
     </div>
     <div class="nav-right">
       <a href="index.html" class="btn-outline">
@@ -78,6 +106,8 @@
   </aside>
   
   <div class="dashboard-content">
+    <!-- Overview Section -->
+    <div id="overviewSection" class="dashboard-section active">
   <div class="dashboard-header">
     <div class="welcome-section">
       <h1>Welcome back, <span id="userName"></span>! 👋</h1>
@@ -135,15 +165,158 @@
   <div class="section-card">
     <h2><i class="fas fa-user"></i> Profile Information</h2>
     <div id="profileInfo"></div>
+    </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div id="ordersSection" class="dashboard-section">
+      <h1><i class="fas fa-shopping-cart"></i> My Orders</h1>
+      <div class="section-card">
+        <div id="ordersContent"></div>
+      </div>
+    </div>
+
+    <!-- Favorites Section -->
+    <div id="favoritesSection" class="dashboard-section">
+      <h1><i class="fas fa-heart"></i> My Favorites</h1>
+      <div class="section-card">
+        <div id="favoritesContent"></div>
+      </div>
+    </div>
+
+    <!-- Referrals Section -->
+    <div id="referralsSection" class="dashboard-section">
+      <h1><i class="fas fa-gift"></i> Referral Program</h1>
+      <div class="referral-card">
+        <h2 style="color: white; margin-bottom: 1rem;"><i class="fas fa-gift"></i> Your Referral Program</h2>
+        <p>Share your code and earn 500 RWF for each friend who makes a purchase!</p>
+        <div class="referral-code-box">
+          <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">Your Referral Code</div>
+          <div class="code" id="userReferralCode2">LOADING...</div>
+        </div>
+        <button class="btn-primary" onclick="copyReferralLink()" style="width: 100%;">
+          <i class="fas fa-copy"></i> Copy Referral Link
+        </button>
+        <div style="margin-top: 1rem; text-align: center;">
+          <strong id="referralStats2">0 referrals • 0 converted</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div id="profileSection" class="dashboard-section">
+      <h1><i class="fas fa-user"></i> My Profile</h1>
+      <div class="section-card">
+        <div id="profileContent"></div>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- Invoice Modal -->
+<div id="invoiceModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-file-invoice"></i> Order Invoice</h2>
+      <button class="close-modal" onclick="closeInvoiceModal()">&times;</button>
+    </div>
+    <div id="invoiceContent"></div>
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+      <button class="btn-primary" onclick="proceedToPayment()" style="flex: 1;">
+        <i class="fas fa-credit-card"></i> Pay Now
+      </button>
+      <button class="btn-outline" onclick="closeInvoiceModal()" style="flex: 1;">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-credit-card"></i> Upload Payment Proof</h2>
+      <button class="close-modal" onclick="closePaymentModal()">&times;</button>
+    </div>
+    <div class="payment-upload">
+      <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem;"></i>
+      <p style="color: var(--text); margin-bottom: 1rem;">Upload screenshot or photo of payment confirmation</p>
+      <label for="paymentProof" class="upload-label">
+        <i class="fas fa-upload"></i> Choose File
+      </label>
+      <input type="file" id="paymentProof" accept="image/*" onchange="previewPayment(event)">
+      <div id="uploadPreview"></div>
+    </div>
+    <button class="btn-primary" onclick="submitPayment()" style="width: 100%;" id="submitPaymentBtn" disabled>
+      <i class="fas fa-check"></i> Submit Payment
+    </button>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div id="receiptModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-receipt"></i> Payment Receipt</h2>
+      <button class="close-modal" onclick="closeReceiptModal()">&times;</button>
+    </div>
+    <div id="receiptContent"></div>
+    <button class="btn-primary" onclick="printReceipt()" style="width: 100%; margin-top: 1rem;">
+      <i class="fas fa-print"></i> Print Receipt
+    </button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- Image Search Modal -->
+<div id="imageSearchModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-camera"></i> AI Image Search</h2>
+      <button class="close-modal" onclick="closeImageSearch()">&times;</button>
+    </div>
+    <div class="ai-upload-area">
+      <i class="fas fa-cloud-upload-alt" style="font-size: 4rem; color: var(--accent); margin-bottom: 1rem;"></i>
+      <h3 style="color: var(--text); margin-bottom: 0.5rem;">Upload Product Image</h3>
+      <p style="color: var(--text-light); margin-bottom: 1.5rem;">AI will analyze and find similar products</p>
+      <label for="imageSearchInput" class="upload-label">
+        <i class="fas fa-upload"></i> Choose Image
+      </label>
+      <input type="file" id="imageSearchInput" accept="image/*" onchange="processImageSearch(event)" style="display: none;">
+      <div id="imageSearchPreview"></div>
+    </div>
+    <div id="imageSearchResults"></div>
+  </div>
+</div>
+
+<!-- Voice Search Modal -->
+<div id="voiceSearchModal" class="modal">
+  <div class="modal-content" style="text-align: center;">
+    <div class="modal-header">
+      <h2><i class="fas fa-microphone"></i> AI Voice Search</h2>
+      <button class="close-modal" onclick="closeVoiceSearch()">&times;</button>
+    </div>
+    <div class="voice-search-area">
+      <div class="voice-animation" id="voiceAnimation">
+        <i class="fas fa-microphone" style="font-size: 4rem; color: var(--accent);"></i>
+      </div>
+      <h3 style="color: var(--text); margin: 1.5rem 0 0.5rem;">Listening...</h3>
+      <p style="color: var(--text-light); margin-bottom: 1.5rem;">Say the product or order you're looking for</p>
+      <p id="voiceTranscript" style="font-size: 1.2rem; color: var(--primary); font-weight: 600; min-height: 30px;"></p>
+      <button class="btn-outline" onclick="stopVoiceSearch()" style="margin-top: 1rem;">
+        <i class="fas fa-stop"></i> Stop Listening
+      </button>
+    </div>
+  </div>
+</div>
+
 <script src="app.js"></script>
 <script>
   let currentUser = null;
+  let currentOrder = null;
+  let paymentProofFile = null;
 
   function checkAuth() {
     const userStr = sessionStorage.getItem('currentUser');
@@ -273,17 +446,7 @@
   }
 
   function viewOrderDetails(orderRef) {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const order = orders.find(o => o.orderRef === orderRef);
-    
-    if (order) {
-      // Generate and view receipt
-      if (typeof generateReceipt === 'function') {
-        generateReceipt(order);
-      } else {
-        alert('Order: ' + orderRef + '\nTotal: ' + order.total.toLocaleString() + ' RWF');
-      }
-    }
+    viewInvoice(orderRef);
   }
 
   function logout() {
@@ -300,8 +463,438 @@
   }
 
   function showSection(section) {
+    event.preventDefault();
     document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
     event.target.closest('a').classList.add('active');
+    
+    document.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
+    
+    switch(section) {
+      case 'overview':
+        document.getElementById('overviewSection').classList.add('active');
+        break;
+      case 'orders':
+        document.getElementById('ordersSection').classList.add('active');
+        loadOrdersSection();
+        break;
+      case 'favorites':
+        document.getElementById('favoritesSection').classList.add('active');
+        loadFavoritesSection();
+        break;
+      case 'referrals':
+        document.getElementById('referralsSection').classList.add('active');
+        loadReferralsSection();
+        break;
+      case 'profile':
+        document.getElementById('profileSection').classList.add('active');
+        loadProfileSection();
+        break;
+    }
+  }
+
+  function loadOrdersSection() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+    
+    if (userOrders.length === 0) {
+      document.getElementById('ordersContent').innerHTML = '<p style="color: var(--text-light);">No orders yet. <a href="index.html">Start shopping!</a></p>';
+      return;
+    }
+    
+    const html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${userOrders.reverse().map(order => `
+            <tr>
+              <td>${order.orderRef}</td>
+              <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+              <td>${order.items.length} items</td>
+              <td>${order.total.toLocaleString()} RWF</td>
+              <td><span class="status-badge status-confirmed">${order.status}</span></td>
+              <td>
+                <button class="btn-outline" onclick="viewInvoice('${order.orderRef}')" style="margin-right: 0.5rem;">
+                  <i class="fas fa-file-invoice"></i> Invoice
+                </button>
+                <button class="btn-outline" onclick="viewReceipt('${order.orderRef}')">
+                  <i class="fas fa-receipt"></i> Receipt
+                </button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    
+    document.getElementById('ordersContent').innerHTML = html;
+  }
+
+  function loadFavoritesSection() {
+    const favorites = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+    
+    if (favorites.length === 0) {
+      document.getElementById('favoritesContent').innerHTML = '<p style="color: var(--text-light);">No favorites yet. <a href="index.html">Browse products!</a></p>';
+      return;
+    }
+    
+    fetch('simba_products.json')
+      .then(res => res.json())
+      .then(products => {
+        const favoriteProducts = products.filter(p => favorites.includes(p.id));
+        
+        const html = `
+          <div class="products-grid">
+            ${favoriteProducts.map(product => `
+              <div class="product-card">
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                <h4 style="color: var(--text); margin: 0.5rem 0;">${product.name}</h4>
+                <p style="color: var(--accent); font-weight: 700; font-size: 1.2rem;">${product.price.toLocaleString()} RWF</p>
+                <button class="btn-primary" onclick="addToCartFromFavorites(${product.id})" style="width: 100%;">
+                  <i class="fas fa-cart-plus"></i> Add to Cart
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        
+        document.getElementById('favoritesContent').innerHTML = html;
+      });
+  }
+
+  function loadReferralsSection() {
+    let userCode = localStorage.getItem('userReferralCode');
+    if (!userCode) {
+      userCode = 'SIMBA' + Math.random().toString(36).substr(2, 6).toUpperCase();
+      localStorage.setItem('userReferralCode', userCode);
+    }
+    
+    document.getElementById('userReferralCode2').textContent = userCode;
+    
+    const tracking = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    const referrals = tracking[userCode] || [];
+    const converted = referrals.filter(r => r.converted).length;
+    
+    document.getElementById('referralStats2').textContent = 
+      `${referrals.length} referrals • ${converted} converted`;
+  }
+
+  function loadProfileSection() {
+    const html = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div>
+          <strong>Name:</strong><br>${currentUser.name}
+        </div>
+        <div>
+          <strong>Email:</strong><br>${currentUser.email}
+        </div>
+        <div>
+          <strong>Phone:</strong><br>${currentUser.phone}
+        </div>
+        <div>
+          <strong>Member Since:</strong><br>${new Date(currentUser.createdAt).toLocaleDateString()}
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('profileContent').innerHTML = html;
+  }
+
+  function addToCartFromFavorites(productId) {
+    fetch('simba_products.json')
+      .then(res => res.json())
+      .then(products => {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+          let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const existing = cart.find(item => item.id === productId);
+          
+          if (existing) {
+            existing.quantity++;
+          } else {
+            cart.push({ ...product, quantity: 1 });
+          }
+          
+          localStorage.setItem('cart', JSON.stringify(cart));
+          showToast('Added to cart!');
+        }
+      });
+  }
+
+  function viewInvoice(orderRef) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = orders.find(o => o.orderRef === orderRef);
+    
+    if (order) {
+      currentOrder = order;
+      const html = `
+        <div style="border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+          <h3 style="color: var(--primary);">Order #${order.orderRef}</h3>
+          <p style="color: var(--text-light);">Date: ${new Date(order.orderDate).toLocaleString()}</p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="color: var(--text);">Customer Details</h4>
+          <p style="margin: 0.25rem 0;"><strong>Name:</strong> ${order.customer.name}</p>
+          <p style="margin: 0.25rem 0;"><strong>Phone:</strong> ${order.customer.phone}</p>
+          <p style="margin: 0.25rem 0;"><strong>Address:</strong> ${order.customer.address}</p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="color: var(--text);">Order Items</h4>
+          ${order.items.map(item => `
+            <div class="invoice-item">
+              <span>${item.name} x ${item.quantity}</span>
+              <span>${(item.price * item.quantity).toLocaleString()} RWF</span>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="border-top: 2px solid var(--border); padding-top: 1rem;">
+          <div class="invoice-item" style="border: none;">
+            <strong style="font-size: 1.2rem;">Total Amount:</strong>
+            <strong style="font-size: 1.5rem; color: var(--accent);">${order.total.toLocaleString()} RWF</strong>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('invoiceContent').innerHTML = html;
+      document.getElementById('invoiceModal').classList.add('show');
+    }
+  }
+
+  function viewReceipt(orderRef) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = orders.find(o => o.orderRef === orderRef);
+    
+    if (order) {
+      const html = `
+        <div style="text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+          <h3 style="color: var(--success);"><i class="fas fa-check-circle"></i> Payment Successful</h3>
+          <p style="color: var(--text-light);">Thank you for your purchase!</p>
+        </div>
+        
+        <div style="border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+          <h3 style="color: var(--primary);">Receipt #${order.orderRef}</h3>
+          <p style="color: var(--text-light);">Date: ${new Date(order.orderDate).toLocaleString()}</p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="color: var(--text);">Customer Details</h4>
+          <p style="margin: 0.25rem 0;"><strong>Name:</strong> ${order.customer.name}</p>
+          <p style="margin: 0.25rem 0;"><strong>Phone:</strong> ${order.customer.phone}</p>
+          <p style="margin: 0.25rem 0;"><strong>Address:</strong> ${order.customer.address}</p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <h4 style="color: var(--text);">Order Items</h4>
+          ${order.items.map(item => `
+            <div class="invoice-item">
+              <span>${item.name} x ${item.quantity}</span>
+              <span>${(item.price * item.quantity).toLocaleString()} RWF</span>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="border-top: 2px solid var(--border); padding-top: 1rem; margin-bottom: 1rem;">
+          <div class="invoice-item" style="border: none;">
+            <strong style="font-size: 1.2rem;">Total Paid:</strong>
+            <strong style="font-size: 1.5rem; color: var(--success);">${order.total.toLocaleString()} RWF</strong>
+          </div>
+        </div>
+        
+        <div style="background: var(--surface); padding: 1rem; border-radius: 8px; text-align: center;">
+          <p style="color: var(--text-light); margin: 0;">Payment Method: ${order.paymentMethod}</p>
+          <p style="color: var(--success); margin: 0.5rem 0 0 0; font-weight: 600;">Status: ${order.status}</p>
+        </div>
+      `;
+      
+      document.getElementById('receiptContent').innerHTML = html;
+      document.getElementById('receiptModal').classList.add('show');
+    }
+  }
+
+  function closeInvoiceModal() {
+    document.getElementById('invoiceModal').classList.remove('show');
+  }
+
+  function proceedToPayment() {
+    closeInvoiceModal();
+    document.getElementById('paymentModal').classList.add('show');
+  }
+
+  function closePaymentModal() {
+    document.getElementById('paymentModal').classList.remove('show');
+    paymentProofFile = null;
+    document.getElementById('uploadPreview').innerHTML = '';
+    document.getElementById('submitPaymentBtn').disabled = true;
+  }
+
+  function previewPayment(event) {
+    const file = event.target.files[0];
+    if (file) {
+      paymentProofFile = file;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('uploadPreview').innerHTML = `
+          <img src="${e.target.result}" class="upload-preview" alt="Payment Proof">
+          <p style="color: var(--success); margin-top: 0.5rem;"><i class="fas fa-check"></i> File uploaded: ${file.name}</p>
+        `;
+        document.getElementById('submitPaymentBtn').disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function submitPayment() {
+    if (!paymentProofFile) {
+      showToast('Please upload payment proof');
+      return;
+    }
+    
+    showToast('Processing payment...');
+    
+    setTimeout(() => {
+      closePaymentModal();
+      showToast('Payment confirmed successfully!');
+      
+      setTimeout(() => {
+        viewReceipt(currentOrder.orderRef);
+      }, 1000);
+    }, 2000);
+  }
+
+  function closeReceiptModal() {
+    document.getElementById('receiptModal').classList.remove('show');
+  }
+
+  function printReceipt() {
+    window.print();
+  }
+
+  // AI Image Search
+  function openImageSearch() {
+    document.getElementById('imageSearchModal').classList.add('show');
+  }
+
+  function closeImageSearch() {
+    document.getElementById('imageSearchModal').classList.remove('show');
+    document.getElementById('imageSearchPreview').innerHTML = '';
+    document.getElementById('imageSearchResults').innerHTML = '';
+  }
+
+  function processImageSearch(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('imageSearchPreview').innerHTML = `
+        <img src="${e.target.result}" style="max-width: 100%; max-height: 300px; border-radius: 12px; margin: 1rem 0;" alt="Uploaded">
+        <p style="color: var(--success);"><i class="fas fa-check"></i> Analyzing image with AI...</p>
+      `;
+
+      setTimeout(() => {
+        const keywords = ['milk', 'bread', 'water', 'juice', 'soap'];
+        const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+        
+        fetch('simba_products.json')
+          .then(res => res.json())
+          .then(products => {
+            const results = products.filter(p => 
+              p.name.toLowerCase().includes(randomKeyword) ||
+              p.category.toLowerCase().includes(randomKeyword)
+            ).slice(0, 6);
+
+            if (results.length > 0) {
+              document.getElementById('imageSearchResults').innerHTML = `
+                <h3 style="color: var(--text); margin: 1.5rem 0 1rem;"><i class="fas fa-check-circle" style="color: var(--success);"></i> Found ${results.length} Similar Products</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">
+                  ${results.map(product => `
+                    <div style="background: var(--card-bg); border: 2px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer;" onclick="closeImageSearch(); window.location.href='product.html?id=${product.id}'">
+                      <img src="${product.image}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem;" onerror="this.src='https://via.placeholder.com/100'">
+                      <h4 style="font-size: 0.9rem; color: var(--text); margin: 0.5rem 0;">${product.name}</h4>
+                      <p style="color: var(--accent); font-weight: 700;">${product.price.toLocaleString()} RWF</p>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            } else {
+              document.getElementById('imageSearchResults').innerHTML = `
+                <p style="color: var(--text-light); margin-top: 1rem;">No similar products found. Try another image.</p>
+              `;
+            }
+          });
+      }, 2000);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // AI Voice Search
+  let recognition = null;
+
+  function toggleVoiceSearch() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      showToast('Voice search not supported in this browser');
+      return;
+    }
+
+    document.getElementById('voiceSearchModal').classList.add('show');
+    startVoiceRecognition();
+  }
+
+  function startVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onresult = function(event) {
+      const transcript = Array.from(event.results)
+        .map(result => result[0].transcript)
+        .join('');
+      
+      document.getElementById('voiceTranscript').textContent = transcript;
+
+      if (event.results[0].isFinal) {
+        setTimeout(() => {
+          closeVoiceSearch();
+          document.getElementById('dashboardSearch').value = transcript;
+          showToast('Searching for: ' + transcript);
+        }, 500);
+      }
+    };
+
+    recognition.onerror = function(event) {
+      showToast('Voice recognition error: ' + event.error);
+      closeVoiceSearch();
+    };
+
+    recognition.start();
+  }
+
+  function stopVoiceSearch() {
+    if (recognition) {
+      recognition.stop();
+    }
+    closeVoiceSearch();
+  }
+
+  function closeVoiceSearch() {
+    document.getElementById('voiceSearchModal').classList.remove('show');
+    document.getElementById('voiceTranscript').textContent = '';
+    if (recognition) {
+      recognition.stop();
+    }
   }
 
   window.onload = checkAuth;

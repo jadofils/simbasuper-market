@@ -67,7 +67,8 @@ async function loadProducts() {
     }
     
     const data = await response.json();
-    products = data.products;
+    // Handle both array and object with products property
+    products = Array.isArray(data) ? data : (data.products || []);
     
     console.log(`Loaded ${products.length} products`);
     
@@ -90,6 +91,7 @@ async function loadProducts() {
     renderProducts();
     populateCategoryFilter();
     updateCartBadge();
+    initHeroSlider(); // Initialize slider after products load
   } catch (error) {
     console.error('Error loading products:', error);
     const grid = document.getElementById('productsGrid');
@@ -972,3 +974,102 @@ function updateAuthButton() {
 document.addEventListener('DOMContentLoaded', () => {
   updateAuthButton();
 });
+
+
+// ========== HERO SLIDER ==========
+let currentSlide = 0;
+let sliderInterval = null;
+let sliderProducts = [];
+
+function initHeroSlider() {
+  console.log('Initializing hero slider...');
+  console.log('Products available:', products.length);
+  
+  if (products.length === 0) {
+    console.log('No products yet, retrying...');
+    return;
+  }
+  
+  // Get 6 random featured products
+  sliderProducts = products
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 6);
+  
+  console.log('Slider products:', sliderProducts.length);
+  
+  renderSlider();
+  startAutoSlide();
+}
+
+function renderSlider() {
+  const slider = document.getElementById('heroSlider');
+  const dots = document.getElementById('sliderDots');
+  
+  console.log('Rendering slider...');
+  console.log('Slider element:', slider);
+  console.log('Dots element:', dots);
+  
+  if (!slider || !dots) {
+    console.error('Slider elements not found!');
+    return;
+  }
+  
+  slider.innerHTML = sliderProducts.map((product, index) => `
+    <div class="slider-item" onclick="window.location.href='product.html?id=${product.id}'">
+      <div class="slider-product">
+        <img src="${product.image}" alt="${product.name}" class="slider-product-img" onerror="this.src='https://via.placeholder.com/400x400/f0f0f0/555?text=Product'">
+        <h3 class="slider-product-name">${product.name}</h3>
+        <p class="slider-product-price">${formatPrice(product.price)}</p>
+        <button class="slider-product-btn" onclick="event.stopPropagation(); addToCart(event, ${product.id})">
+          <i class="fas fa-cart-plus"></i> Add to Cart
+        </button>
+      </div>
+    </div>
+  `).join('');
+  
+  dots.innerHTML = sliderProducts.map((_, index) => `
+    <div class="slider-dot ${index === 0 ? 'active' : ''}" onclick="goToSlide(${index})"></div>
+  `).join('');
+  
+  console.log('Slider rendered successfully');
+  updateSliderPosition();
+}
+
+function updateSliderPosition() {
+  const slider = document.getElementById('heroSlider');
+  if (!slider) return;
+  
+  slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+  
+  // Update dots
+  document.querySelectorAll('.slider-dot').forEach((dot, index) => {
+    dot.classList.toggle('active', index === currentSlide);
+  });
+}
+
+function nextSlide() {
+  currentSlide = (currentSlide + 1) % sliderProducts.length;
+  updateSliderPosition();
+  resetAutoSlide();
+}
+
+function prevSlide() {
+  currentSlide = (currentSlide - 1 + sliderProducts.length) % sliderProducts.length;
+  updateSliderPosition();
+  resetAutoSlide();
+}
+
+function goToSlide(index) {
+  currentSlide = index;
+  updateSliderPosition();
+  resetAutoSlide();
+}
+
+function startAutoSlide() {
+  sliderInterval = setInterval(nextSlide, 4000);
+}
+
+function resetAutoSlide() {
+  clearInterval(sliderInterval);
+  startAutoSlide();
+}
