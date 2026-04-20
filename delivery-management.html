@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delivery Management — Simba Supermarket</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    .step-container { max-width: 1200px; margin: 0 auto; }
+    .steps-header { display: flex; justify-content: space-between; margin-bottom: 3rem; position: relative; }
+    .steps-header::before { content: ''; position: absolute; top: 20px; left: 0; right: 0; height: 2px; background: var(--border); z-index: 0; }
+    .step { flex: 1; text-align: center; position: relative; z-index: 1; }
+    .step-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-light); transition: all 0.3s; }
+    .step.active .step-circle { background: var(--accent); border-color: var(--accent); color: white; }
+    .step.completed .step-circle { background: var(--success); border-color: var(--success); color: white; }
+    .step-label { font-size: 0.9rem; color: var(--text-light); font-weight: 500; }
+    .step.active .step-label { color: var(--accent); font-weight: 600; }
+    .form-card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
+    .form-card h3 { margin: 0 0 1.5rem 0; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .order-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+    .order-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.3s; }
+    .order-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .order-card.selected { border-color: var(--success); background: var(--success-bg); }
+    .driver-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+    .driver-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.3s; position: relative; }
+    .driver-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .driver-card.selected { border-color: var(--success); background: var(--success-bg); }
+    .driver-card.unavailable { opacity: 0.5; cursor: not-allowed; }
+    .driver-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem; margin-bottom: 1rem; }
+    .driver-status { position: absolute; top: 1rem; right: 1rem; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .status-available { background: var(--success-bg); color: var(--success); }
+    .status-busy { background: var(--warning-bg); color: var(--warning); }
+    .status-offline { background: var(--danger-bg); color: var(--danger); }
+    .vehicle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .vehicle-card { background: var(--surface); padding: 2rem 1rem; border-radius: 12px; border: 2px solid var(--border); text-align: center; cursor: pointer; transition: all 0.3s; }
+    .vehicle-card:hover { border-color: var(--accent); transform: scale(1.05); }
+    .vehicle-card.selected { border-color: var(--success); background: var(--success-bg); }
+    .vehicle-icon { font-size: 3rem; margin-bottom: 1rem; color: var(--accent); }
+    #map { width: 100%; height: 450px; border-radius: 12px; background: var(--surface); border: 2px solid var(--border); }
+    .route-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1rem; }
+    .route-stat { background: var(--surface); padding: 1rem; border-radius: 8px; text-align: center; }
+    .route-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+    .route-stat-label { font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem; }
+    .action-buttons { display: flex; gap: 1rem; margin-top: 2rem; }
+    .btn-next { flex: 1; padding: 1rem; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+    .btn-next:hover { background: var(--primary); transform: translateY(-2px); }
+    .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-back { padding: 1rem 2rem; background: var(--surface); color: var(--text); border: 2px solid var(--border); border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .summary-grid { display: grid; gap: 1rem; }
+    .summary-item { display: flex; justify-content: space-between; padding: 1rem; background: var(--surface); border-radius: 8px; }
+    @media (max-width: 768px) {
+      .steps-header { flex-direction: column; gap: 1rem; }
+      .steps-header::before { display: none; }
+      .order-grid, .driver-grid { grid-template-columns: 1fr; }
+      .vehicle-grid { grid-template-columns: 1fr; }
+      .route-summary { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="dashboard.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+    </div>
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0;">Delivery Management</h2>
+    </div>
+    <div class="nav-right">
+      <a href="dashboard.html" class="btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="section">
+  <div class="step-container">
+    <!-- Progress Steps -->
+    <div class="steps-header">
+      <div class="step" id="step1" data-step="1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Select Order</div>
+      </div>
+      <div class="step" id="step2" data-step="2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Assign Driver</div>
+      </div>
+      <div class="step" id="step3" data-step="3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Choose Vehicle</div>
+      </div>
+      <div class="step" id="step4" data-step="4">
+        <div class="step-circle">4</div>
+        <div class="step-label">Route & Confirm</div>
+      </div>
+      <div class="step" id="step5" data-step="5">
+        <div class="step-circle">5</div>
+        <div class="step-label">Track Delivery</div>
+      </div>
+    </div>
+
+    <!-- Step 1: Select Order -->
+    <div class="form-card" id="stepContent1">
+      <h3><i class="fas fa-shopping-cart"></i> Step 1: Select Order to Deliver</h3>
+      <div class="order-grid" id="ordersGrid"></div>
+      <div class="action-buttons">
+        <button class="btn-next" id="nextStep1" disabled onclick="goToStep(2)">
+          Next: Assign Driver <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Assign Driver -->
+    <div class="form-card" id="stepContent2" style="display: none;">
+      <h3><i class="fas fa-user-tie"></i> Step 2: Assign Driver</h3>
+      <div class="driver-grid" id="driversGrid"></div>
+      <div class="action-buttons">
+        <button class="btn-back" onclick="goToStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+        <button class="btn-next" id="nextStep2" disabled onclick="goToStep(3)">
+          Next: Choose Vehicle <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Choose Vehicle -->
+    <div class="form-card" id="stepContent3" style="display: none;">
+      <h3><i class="fas fa-car"></i> Step 3: Choose Vehicle Type</h3>
+      <div class="vehicle-grid" id="vehiclesGrid"></div>
+      <div class="action-buttons">
+        <button class="btn-back" onclick="goToStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+        <button class="btn-next" id="nextStep3" disabled onclick="goToStep(4)">
+          Next: View Route <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4: Route & Confirm -->
+    <div class="form-card" id="stepContent4" style="display: none;">
+      <h3><i class="fas fa-route"></i> Step 4: Route Preview & Confirmation</h3>
+      <div id="map"></div>
+      <div class="route-summary" id="routeSummary"></div>
+      <div class="summary-grid" id="assignmentSummary" style="margin-top: 2rem;"></div>
+      <div class="action-buttons">
+        <button class="btn-back" onclick="goToStep(3)"><i class="fas fa-arrow-left"></i> Back</button>
+        <button class="btn-next" onclick="confirmAssignment()">
+          <i class="fas fa-check-circle"></i> Confirm Assignment
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 5: Active Deliveries & Tracking -->
+    <div class="form-card" id="stepContent5" style="display: none;">
+      <h3><i class="fas fa-truck-loading"></i> Step 5: Active Deliveries & Real-Time Tracking</h3>
+      <div id="trackingMap" style="width: 100%; height: 500px; border-radius: 12px; background: var(--surface); border: 2px solid var(--border); margin-bottom: 2rem;"></div>
+      <div id="activeDeliveriesGrid"></div>
+      <div class="action-buttons">
+        <button class="btn-next" onclick="resetFlow()">
+          <i class="fas fa-plus"></i> Assign New Delivery
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let currentStep = 1;
+  let selectedOrder = null;
+  let selectedDriver = null;
+  let selectedVehicle = null;
+  let map = null;
+  let trackingMap = null;
+  let directionsService = null;
+  let directionsRenderer = null;
+  let driverMarker = null;
+  let customerMarker = null;
+  let trackingInterval = null;
+
+  const SIMBA_LOCATION = { lat: -1.9441, lng: 30.0619 }; // Kigali center
+
+  const drivers = [
+    { id: 1, name: 'Jean Bosco', phone: '+250 788 111 222', vehicle: ['motorcycle'], status: 'available', rating: 4.8, deliveries: 156, currentLocation: { lat: -1.9441, lng: 30.0619 } },
+    { id: 2, name: 'Marie Claire', phone: '+250 788 222 333', vehicle: ['motorcycle', 'car'], status: 'available', rating: 4.9, deliveries: 203, currentLocation: { lat: -1.9450, lng: 30.0630 } },
+    { id: 3, name: 'Patrick Nkusi', phone: '+250 788 333 444', vehicle: ['car', 'van'], status: 'busy', rating: 4.7, deliveries: 189, currentLocation: { lat: -1.9500, lng: 30.0700 } },
+    { id: 4, name: 'Grace Uwase', phone: '+250 788 444 555', vehicle: ['motorcycle'], status: 'available', rating: 4.9, deliveries: 178, currentLocation: { lat: -1.9430, lng: 30.0610 } },
+    { id: 5, name: 'David Mugisha', phone: '+250 788 555 666', vehicle: ['car', 'van'], status: 'available', rating: 4.6, deliveries: 145, currentLocation: { lat: -1.9460, lng: 30.0640 } }
+  ];
+
+  const vehicles = [
+    { type: 'motorcycle', icon: 'fa-motorcycle', name: 'Motorcycle', capacity: '2 bags', speed: 'Fast' },
+    { type: 'car', icon: 'fa-car', name: 'Car', capacity: '10 bags', speed: 'Medium' },
+    { type: 'van', icon: 'fa-truck', name: 'Van', capacity: '30 bags', speed: 'Standard' }
+  ];
+
+  function goToStep(step) {
+    // Hide all steps
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById(`stepContent${i}`).style.display = 'none';
+      document.getElementById(`step${i}`).classList.remove('active', 'completed');
+    }
+
+    // Mark completed steps
+    for (let i = 1; i < step; i++) {
+      document.getElementById(`step${i}`).classList.add('completed');
+    }
+
+    // Show current step
+    document.getElementById(`stepContent${step}`).style.display = 'block';
+    document.getElementById(`step${step}`).classList.add('active');
+    currentStep = step;
+
+    // Initialize step-specific content
+    if (step === 1) loadOrders();
+    if (step === 2) loadDrivers();
+    if (step === 3) loadVehicles();
+    if (step === 4) loadRoutePreview();
+    if (step === 5) loadActiveDeliveries();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function loadOrders() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const pendingOrders = orders.filter(o => o.status === 'Confirmed' && !o.driverId);
+
+    const html = pendingOrders.length > 0 ? pendingOrders.map(order => `
+      <div class="order-card ${selectedOrder?.orderRef === order.orderRef ? 'selected' : ''}" onclick="selectOrder('${order.orderRef}')">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+          <div>
+            <strong style="color: var(--text); font-size: 1.1rem;">${order.orderRef}</strong>
+            <p style="margin: 0.5rem 0 0 0; color: var(--text-light);">
+              <i class="fas fa-user"></i> ${order.customer.name}
+            </p>
+            <p style="margin: 0.25rem 0 0 0; color: var(--text-light); font-size: 0.9rem;">
+              <i class="fas fa-phone"></i> ${order.customer.phone}
+            </p>
+          </div>
+          <div style="text-align: right;">
+            <div style="color: var(--accent); font-weight: 700; font-size: 1.2rem;">${order.total.toLocaleString()} RWF</div>
+            <div style="margin-top: 0.5rem;">
+              <span style="background: var(--warning-bg); color: var(--warning); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem;">
+                ${order.items.length} items
+              </span>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: start; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; padding: 0.75rem; background: var(--surface); border-radius: 8px;">
+          <i class="fas fa-map-marker-alt" style="margin-top: 0.25rem;"></i>
+          <span>${order.customer.address}</span>
+        </div>
+      </div>
+    `).join('') : '<p style="color: var(--text-light); text-align: center; padding: 3rem;"><i class="fas fa-inbox" style="font-size: 3rem; display: block; margin-bottom: 1rem; opacity: 0.3;"></i>No pending orders available</p>';
+
+    document.getElementById('ordersGrid').innerHTML = html;
+  }
+
+  function selectOrder(orderRef) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    selectedOrder = orders.find(o => o.orderRef === orderRef);
+    loadOrders();
+    document.getElementById('nextStep1').disabled = false;
+  }
+
+  function loadDrivers() {
+    const html = drivers.map(driver => {
+      const isAvailable = driver.status === 'available';
+      return `
+        <div class="driver-card ${selectedDriver?.id === driver.id ? 'selected' : ''} ${!isAvailable ? 'unavailable' : ''}" onclick="${isAvailable ? `selectDriver(${driver.id})` : ''}">
+          <span class="driver-status status-${driver.status}">${driver.status.toUpperCase()}</span>
+          <div class="driver-avatar">${driver.name.charAt(0)}</div>
+          <div>
+            <strong style="color: var(--text); font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">${driver.name}</strong>
+            <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-phone"></i> ${driver.phone}
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+              ${driver.vehicle.map(v => `<span style="background: var(--surface); padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.8rem;">
+                <i class="fas fa-${v === 'motorcycle' ? 'motorcycle' : v === 'car' ? 'car' : 'truck'}"></i> ${v}
+              </span>`).join('')}
+            </div>
+            <div style="color: var(--text-light); font-size: 0.85rem;">
+              <i class="fas fa-star" style="color: #FFC107;"></i> ${driver.rating} • 
+              <i class="fas fa-box"></i> ${driver.deliveries} deliveries
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('driversGrid').innerHTML = html;
+  }
+
+  function selectDriver(driverId) {
+    selectedDriver = drivers.find(d => d.id === driverId);
+    loadDrivers();
+    document.getElementById('nextStep2').disabled = false;
+  }
+
+  function loadVehicles() {
+    const availableVehicles = selectedDriver ? selectedDriver.vehicle : ['motorcycle', 'car', 'van'];
+    
+    const html = vehicles.map(vehicle => {
+      const isAvailable = availableVehicles.includes(vehicle.type);
+      return `
+        <div class="vehicle-card ${selectedVehicle === vehicle.type ? 'selected' : ''} ${!isAvailable ? 'unavailable' : ''}" 
+             onclick="${isAvailable ? `selectVehicle('${vehicle.type}')` : ''}">
+          <div class="vehicle-icon">
+            <i class="fas ${vehicle.icon}"></i>
+          </div>
+          <strong style="color: var(--text); font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">${vehicle.name}</strong>
+          <div style="color: var(--text-light); font-size: 0.9rem;">
+            <div><i class="fas fa-box"></i> ${vehicle.capacity}</div>
+            <div><i class="fas fa-tachometer-alt"></i> ${vehicle.speed}</div>
+          </div>
+          ${!isAvailable ? '<div style="margin-top: 0.5rem; color: var(--danger); font-size: 0.8rem;">Not available for this driver</div>' : ''}
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('vehiclesGrid').innerHTML = html;
+  }
+
+  function selectVehicle(type) {
+    selectedVehicle = type;
+    loadVehicles();
+    document.getElementById('nextStep3').disabled = false;
+  }
+
+  function loadRoutePreview() {
+    if (!selectedOrder || !selectedDriver || !selectedVehicle) return;
+
+    // Generate customer location (random location in Kigali)
+    const customerLocation = {
+      lat: SIMBA_LOCATION.lat + (Math.random() - 0.5) * 0.05,
+      lng: SIMBA_LOCATION.lng + (Math.random() - 0.5) * 0.05
+    };
+
+    // Store customer location for later use
+    selectedOrder.customerLocation = customerLocation;
+
+    // Check if Google Maps is available
+    if (typeof google !== 'undefined' && google.maps) {
+      try {
+        // Initialize map
+        if (!map) {
+          map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: SIMBA_LOCATION,
+            styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }]
+          });
+          directionsService = new google.maps.DirectionsService();
+          directionsRenderer = new google.maps.DirectionsRenderer({
+            suppressMarkers: false,
+            polylineOptions: { strokeColor: '#E1D9BC', strokeWeight: 5 }
+          });
+          directionsRenderer.setMap(map);
+        }
+
+        // Calculate route
+        const request = {
+          origin: SIMBA_LOCATION,
+          destination: customerLocation,
+          travelMode: google.maps.TravelMode.DRIVING
+        };
+
+        directionsService.route(request, (result, status) => {
+          if (status === 'OK') {
+            directionsRenderer.setDirections(result);
+            const route = result.routes[0].legs[0];
+            displayRouteInfo(route.distance.text, route.duration.text);
+          } else {
+            displayRouteInfo('5.2 km', '15 mins');
+            showFallbackMap();
+          }
+        });
+      } catch (error) {
+        console.error('Google Maps error:', error);
+        displayRouteInfo('5.2 km', '15 mins');
+        showFallbackMap();
+      }
+    } else {
+      // Google Maps not available, use fallback
+      displayRouteInfo('5.2 km', '15 mins');
+      showFallbackMap();
+    }
+
+    displayAssignmentSummary();
+  }
+
+  function showFallbackMap() {
+    const mapDiv = document.getElementById('map');
+    mapDiv.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 1rem; padding: 2rem;">
+        <i class="fas fa-map-marked-alt" style="font-size: 4rem; color: var(--accent); opacity: 0.5;"></i>
+        <h3 style="color: var(--text); margin: 0;">Route Preview</h3>
+        <p style="color: var(--text-light); text-align: center; max-width: 500px;">
+          Route from <strong>Simba Warehouse</strong> to <strong>${selectedOrder.customer.address}</strong>
+        </p>
+        <div style="display: flex; gap: 2rem; margin-top: 1rem;">
+          <div style="text-align: center;">
+            <i class="fas fa-warehouse" style="font-size: 2rem; color: var(--primary);"></i>
+            <p style="margin: 0.5rem 0 0 0; color: var(--text-light); font-size: 0.9rem;">Simba Warehouse</p>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <i class="fas fa-arrow-right" style="font-size: 2rem; color: var(--accent);"></i>
+          </div>
+          <div style="text-align: center;">
+            <i class="fas fa-home" style="font-size: 2rem; color: var(--success);"></i>
+            <p style="margin: 0.5rem 0 0 0; color: var(--text-light); font-size: 0.9rem;">Customer Location</p>
+          </div>
+        </div>
+        <p style="color: var(--text-light); font-size: 0.85rem; margin-top: 1rem; opacity: 0.7;">
+          <i class="fas fa-info-circle"></i> Google Maps API not configured. Using estimated route data.
+        </p>
+      </div>
+    `;
+  }
+
+  function displayRouteInfo(distance, duration) {
+    const deliveryFee = 2000;
+    document.getElementById('routeSummary').innerHTML = `
+      <div class="route-stat">
+        <div class="route-stat-value"><i class="fas fa-route"></i> ${distance}</div>
+        <div class="route-stat-label">Distance</div>
+      </div>
+      <div class="route-stat">
+        <div class="route-stat-value"><i class="fas fa-clock"></i> ${duration}</div>
+        <div class="route-stat-label">Est. Time</div>
+      </div>
+      <div class="route-stat">
+        <div class="route-stat-value"><i class="fas fa-money-bill-wave"></i> ${deliveryFee.toLocaleString()} RWF</div>
+        <div class="route-stat-label">Delivery Fee</div>
+      </div>
+      <div class="route-stat">
+        <div class="route-stat-value"><i class="fas fa-${selectedVehicle === 'motorcycle' ? 'motorcycle' : selectedVehicle === 'car' ? 'car' : 'truck'}"></i></div>
+        <div class="route-stat-label">${selectedVehicle.charAt(0).toUpperCase() + selectedVehicle.slice(1)}</div>
+      </div>
+    `;
+  }
+
+  function displayAssignmentSummary() {
+    document.getElementById('assignmentSummary').innerHTML = `
+      <div class="summary-item">
+        <span style="color: var(--text-light);"><i class="fas fa-shopping-cart"></i> Order</span>
+        <strong style="color: var(--text);">${selectedOrder.orderRef} - ${selectedOrder.total.toLocaleString()} RWF</strong>
+      </div>
+      <div class="summary-item">
+        <span style="color: var(--text-light);"><i class="fas fa-user"></i> Customer</span>
+        <strong style="color: var(--text);">${selectedOrder.customer.name}</strong>
+      </div>
+      <div class="summary-item">
+        <span style="color: var(--text-light);"><i class="fas fa-map-marker-alt"></i> Delivery Address</span>
+        <strong style="color: var(--text);">${selectedOrder.customer.address}</strong>
+      </div>
+      <div class="summary-item">
+        <span style="color: var(--text-light);"><i class="fas fa-user-tie"></i> Driver</span>
+        <strong style="color: var(--text);">${selectedDriver.name} - ${selectedDriver.phone}</strong>
+      </div>
+      <div class="summary-item">
+        <span style="color: var(--text-light);"><i class="fas fa-${selectedVehicle === 'motorcycle' ? 'motorcycle' : selectedVehicle === 'car' ? 'car' : 'truck'}"></i> Vehicle</span>
+        <strong style="color: var(--text);">${selectedVehicle.charAt(0).toUpperCase() + selectedVehicle.slice(1)}</strong>
+      </div>
+    `;
+  }
+
+  function confirmAssignment() {
+    if (!selectedOrder || !selectedDriver || !selectedVehicle) {
+      showToast('Please complete all steps');
+      return;
+    }
+
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orderIndex = orders.findIndex(o => o.orderRef === selectedOrder.orderRef);
+    
+    if (orderIndex !== -1) {
+      orders[orderIndex].status = 'In Transit';
+      orders[orderIndex].driverId = selectedDriver.id;
+      orders[orderIndex].driverName = selectedDriver.name;
+      orders[orderIndex].driverPhone = selectedDriver.phone;
+      orders[orderIndex].vehicle = selectedVehicle;
+      orders[orderIndex].assignedDate = new Date().toISOString();
+      orders[orderIndex].customerLocation = {
+        lat: SIMBA_LOCATION.lat + (Math.random() - 0.5) * 0.05,
+        lng: SIMBA_LOCATION.lng + (Math.random() - 0.5) * 0.05
+      };
+      
+      localStorage.setItem('orders', JSON.stringify(orders));
+      
+      // Update driver status
+      const driver = drivers.find(d => d.id === selectedDriver.id);
+      if (driver) driver.status = 'busy';
+      
+      showToast(`✓ Order ${selectedOrder.orderRef} assigned to ${selectedDriver.name}`);
+      
+      setTimeout(() => goToStep(5), 1500);
+    }
+  }
+
+  function loadActiveDeliveries() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const activeDeliveries = orders.filter(o => o.status === 'In Transit');
+
+    if (activeDeliveries.length === 0) {
+      document.getElementById('activeDeliveriesGrid').innerHTML = `
+        <p style="color: var(--text-light); text-align: center; padding: 3rem;">
+          <i class="fas fa-check-circle" style="font-size: 3rem; display: block; margin-bottom: 1rem; color: var(--success); opacity: 0.5;"></i>
+          No active deliveries. Assignment completed successfully!
+        </p>
+      `;
+      return;
+    }
+
+    // Initialize tracking map
+    initTrackingMap(activeDeliveries);
+
+    const html = activeDeliveries.map(order => {
+      const driver = drivers.find(d => d.id === order.driverId);
+      return `
+        <div class="order-card" style="border-left: 4px solid var(--success);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+            <div>
+              <strong style="color: var(--text); font-size: 1.1rem;">${order.orderRef}</strong>
+              <p style="margin: 0.5rem 0 0 0; color: var(--text-light);">
+                <i class="fas fa-user"></i> ${order.customer.name}
+              </p>
+              <p style="margin: 0.25rem 0 0 0; color: var(--text-light); font-size: 0.9rem;">
+                <i class="fas fa-motorcycle"></i> ${order.driverName} - ${order.driverPhone}
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <div style="color: var(--accent); font-weight: 700; font-size: 1.2rem;">${order.total.toLocaleString()} RWF</div>
+              <div style="margin-top: 0.5rem;">
+                <span style="background: var(--success-bg); color: var(--success); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem;">
+                  <i class="fas fa-shipping-fast"></i> In Transit
+                </span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: start; gap: 0.5rem; color: var(--text-light); font-size: 0.9rem; padding: 0.75rem; background: var(--surface); border-radius: 8px; margin-bottom: 1rem;">
+            <i class="fas fa-map-marker-alt" style="margin-top: 0.25rem;"></i>
+            <span>${order.customer.address}</span>
+          </div>
+          <button class="btn-next" onclick="focusOnDelivery('${order.orderRef}')" style="width: 100%;">
+            <i class="fas fa-map-marked-alt"></i> Track on Map
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('activeDeliveriesGrid').innerHTML = html;
+  }
+
+  function initTrackingMap(deliveries) {
+    // Check if Google Maps is available
+    if (typeof google !== 'undefined' && google.maps) {
+      try {
+        if (!trackingMap) {
+          trackingMap = new google.maps.Map(document.getElementById('trackingMap'), {
+            zoom: 13,
+            center: SIMBA_LOCATION,
+            styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }]
+          });
+
+          // Add Simba warehouse marker
+          new google.maps.Marker({
+            position: SIMBA_LOCATION,
+            map: trackingMap,
+            title: 'Simba Warehouse',
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: '#30364F',
+              fillOpacity: 1,
+              strokeColor: '#fff',
+              strokeWeight: 2
+            },
+            label: { text: 'S', color: '#fff', fontWeight: 'bold' }
+          });
+        }
+
+        // Add markers for each active delivery
+        deliveries.forEach(order => {
+          const driver = drivers.find(d => d.id === order.driverId);
+          if (driver && driver.currentLocation) {
+            // Driver marker
+            new google.maps.Marker({
+              position: driver.currentLocation,
+              map: trackingMap,
+              title: `Driver: ${driver.name}`,
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                scale: 5,
+                fillColor: '#E1D9BC',
+                fillOpacity: 1,
+                strokeColor: '#fff',
+                strokeWeight: 2
+              }
+            });
+
+            // Customer marker
+            if (order.customerLocation) {
+              new google.maps.Marker({
+                position: order.customerLocation,
+                map: trackingMap,
+                title: `Customer: ${order.customer.name}`,
+                icon: {
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 8,
+                  fillColor: '#4CAF50',
+                  fillOpacity: 1,
+                  strokeColor: '#fff',
+                  strokeWeight: 2
+                },
+                label: { text: 'C', color: '#fff', fontSize: '12px', fontWeight: 'bold' }
+              });
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Google Maps tracking error:', error);
+        showFallbackTrackingMap(deliveries);
+      }
+    } else {
+      // Google Maps not available, use fallback
+      showFallbackTrackingMap(deliveries);
+    }
+
+    // Start real-time tracking simulation
+    startRealTimeTracking(deliveries);
+  }
+
+  function startRealTimeTracking(deliveries) {
+    if (trackingInterval) clearInterval(trackingInterval);
+
+    trackingInterval = setInterval(() => {
+      deliveries.forEach(order => {
+        const driver = drivers.find(d => d.id === order.driverId);
+        if (driver && driver.currentLocation && order.customerLocation) {
+          // Simulate driver movement towards customer
+          const latDiff = (order.customerLocation.lat - driver.currentLocation.lat) * 0.05;
+          const lngDiff = (order.customerLocation.lng - driver.currentLocation.lng) * 0.05;
+          
+          driver.currentLocation.lat += latDiff;
+          driver.currentLocation.lng += lngDiff;
+
+          // Check if driver reached customer
+          const distance = Math.sqrt(
+            Math.pow(order.customerLocation.lat - driver.currentLocation.lat, 2) +
+            Math.pow(order.customerLocation.lng - driver.currentLocation.lng, 2)
+          );
+
+          if (distance < 0.001) {
+            // Delivery completed
+            completeDelivery(order.orderRef);
+          }
+        }
+      });
+    }, 3000); // Update every 3 seconds
+  }
+
+  function showFallbackTrackingMap(deliveries) {
+    const trackingMapDiv = document.getElementById('trackingMap');
+    const deliveryList = deliveries.map((order, index) => {
+      const driver = drivers.find(d => d.id === order.driverId);
+      return `
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--surface); border-radius: 8px; margin-bottom: 0.5rem;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+            ${index + 1}
+          </div>
+          <div style="flex: 1;">
+            <strong style="color: var(--text);">${order.orderRef}</strong>
+            <p style="margin: 0.25rem 0 0 0; color: var(--text-light); font-size: 0.9rem;">
+              <i class="fas fa-motorcycle"></i> ${driver ? driver.name : 'Driver'} → 
+              <i class="fas fa-map-marker-alt"></i> ${order.customer.address}
+            </p>
+          </div>
+          <div style="text-align: right;">
+            <div style="color: var(--success); font-weight: 600; font-size: 0.9rem;">
+              <i class="fas fa-shipping-fast"></i> In Transit
+            </div>
+            <div style="color: var(--text-light); font-size: 0.85rem; margin-top: 0.25rem;">
+              Est. 15 mins
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    trackingMapDiv.innerHTML = `
+      <div style="padding: 2rem; height: 100%; overflow-y: auto;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <i class="fas fa-route" style="font-size: 3rem; color: var(--accent); opacity: 0.5;"></i>
+          <h3 style="color: var(--text); margin: 1rem 0 0.5rem 0;">Active Deliveries Tracking</h3>
+          <p style="color: var(--text-light); font-size: 0.9rem;">
+            <i class="fas fa-info-circle"></i> Real-time map tracking requires Google Maps API
+          </p>
+        </div>
+        ${deliveryList}
+        <div style="margin-top: 2rem; padding: 1rem; background: var(--surface); border-radius: 8px; border-left: 4px solid var(--accent);">
+          <p style="margin: 0; color: var(--text-light); font-size: 0.9rem;">
+            <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> Add your Google Maps API key to enable live map tracking with real-time driver locations.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
+  function focusOnDelivery(orderRef) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = orders.find(o => o.orderRef === orderRef);
+    if (order && order.customerLocation && trackingMap && typeof google !== 'undefined') {
+      try {
+        trackingMap.setCenter(order.customerLocation);
+        trackingMap.setZoom(15);
+        showToast(`Tracking ${orderRef}`);
+      } catch (error) {
+        showToast(`Viewing ${orderRef} details`);
+      }
+    } else {
+      showToast(`Viewing ${orderRef} details`);
+    }
+  }
+
+  function completeDelivery(orderRef) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orderIndex = orders.findIndex(o => o.orderRef === orderRef);
+    
+    if (orderIndex !== -1) {
+      orders[orderIndex].status = 'Delivered';
+      orders[orderIndex].deliveredDate = new Date().toISOString();
+      localStorage.setItem('orders', JSON.stringify(orders));
+      
+      // Free up driver
+      const driver = drivers.find(d => d.id === orders[orderIndex].driverId);
+      if (driver) driver.status = 'available';
+      
+      showToast(`✓ Order ${orderRef} delivered successfully!`);
+      loadActiveDeliveries();
+    }
+  }
+
+  function resetFlow() {
+    selectedOrder = null;
+    selectedDriver = null;
+    selectedVehicle = null;
+    if (trackingInterval) clearInterval(trackingInterval);
+    goToStep(1);
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // Load Google Maps API
+  function loadGoogleMaps() {
+    // Check if API key is configured
+    const apiKey = 'YOUR_API_KEY'; // Replace with your actual API key
+    
+    if (apiKey === 'YOUR_API_KEY' || !apiKey) {
+      console.warn('Google Maps API key not configured. Using fallback mode.');
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMaps`;
+    script.async = true;
+    script.defer = true;
+    script.onerror = () => {
+      console.warn('Google Maps API failed to load. Using fallback mode.');
+    };
+    document.head.appendChild(script);
+  }
+
+  window.initGoogleMaps = function() {
+    console.log('Google Maps API loaded successfully');
+  };
+
+  window.onload = () => {
+    goToStep(1);
+    loadGoogleMaps();
+  };
+</script>
+
+</body>
+</html> class="btn-next" onclick="confirmAssignment()">
+          <i class="fas fa-check-circle"></i> Confirm Assignment
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 5: Active Deliveries & Tracking -->
+    <div class="form-card" id="stepContent5" style="display: none;">
+      <h3><i class="fas fa-truck-loading"></i> Step 5: Active Deliveries & Real-Time Tracking</h3>
+      <div id="activeDeliveriesGrid"></div>
+      <div class="action-buttons">
+        <button class="btn-next" onclick="resetFlow()">
+          <i class="fas fa-plus"></i> Assign New Delivery
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script>
+  let selectedOrder = null;
+  let selectedDriver = null;
+  let selectedVehicle = null;
+  let map = null;
+  let directionsService = null;
+  let directionsRenderer = null;
+
+  const drivers = [
+    { id: 1, name: 'Jean Bosco', phone: '+250 788 111 222', vehicle: 'motorcycle', status: 'available', rating: 4.8, deliveries: 156 },
+    { id: 2, name: 'Marie Claire', phone: '+250 788 222 333', vehicle: 'car', status: 'available', rating: 4.9, deliveries: 203 },
+    { id: 3, name: 'Patrick Nkusi', phone: '+250 788 333 444', vehicle: 'van', status: 'busy', rating: 4.7, deliveries: 189 },
+    { id: 4, name: 'Grace Uwase', phone: '+250 788 444 555', vehicle: 'motorcycle', status: 'available', rating: 4.9, deliveries: 178 },
+    { id: 5, name: 'David Mugisha', phone: '+250 788 555 666', vehicle: 'car', status: 'available', rating: 4.6, deliveries: 145 }
+  ];
+
+  function loadDeliveryData() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const pendingOrders = orders.filter(o => o.status === 'Confirmed' && !o.driverId);
+    const inTransitOrders = orders.filter(o => o.status === 'In Transit');
+    const deliveredToday = orders.filter(o => {
+      if (o.status !== 'Delivered') return false;
+      const today = new Date().toDateString();
+      const orderDate = new Date(o.deliveredDate || o.orderDate).toDateString();
+      return today === orderDate;
+    });
+
+    document.getElementById('pendingOrders').textContent = pendingOrders.length;
+    document.getElementById('inTransit').textContent = inTransitOrders.length;
+    document.getElementById('delivered').textContent = deliveredToday.length;
+    document.getElementById('availableDrivers').textContent = drivers.filter(d => d.status === 'available').length;
+
+    renderPendingOrders(pendingOrders);
+    renderDriversList();
+    renderActiveDeliveries(inTransitOrders);
+  }
+
+  function renderPendingOrders(orders) {
+    const html = orders.length > 0 ? orders.map(order => `
+      <div class="order-item" onclick="selectOrder('${order.orderRef}')">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+          <div>
+            <strong style="color: var(--text);">${order.orderRef}</strong>
+            <p style="margin: 0.25rem 0; color: var(--text-light); font-size: 0.9rem;">${order.customer.name}</p>
+          </div>
+          <span style="color: var(--accent); font-weight: 700;">${order.total.toLocaleString()} RWF</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.85rem;">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>${order.customer.address}</span>
+        </div>
+        <div style="margin-top: 0.5rem;">
+          <span style="background: var(--warning-bg); color: var(--warning); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem;">
+            <i class="fas fa-clock"></i> ${order.items.length} items
+          </span>
+        </div>
+      </div>
+    `).join('') : '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No pending orders</p>';
+
+    document.getElementById('pendingOrdersList').innerHTML = html;
+  }
+
+  function renderDriversList() {
+    const html = drivers.map(driver => `
+      <div class="driver-item ${selectedDriver?.id === driver.id ? 'selected' : ''}" onclick="selectDriver(${driver.id})">
+        <div class="driver-avatar">${driver.name.charAt(0)}</div>
+        <div class="driver-info">
+          <strong style="color: var(--text);">${driver.name}</strong>
+          <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
+            <i class="fas fa-${driver.vehicle === 'motorcycle' ? 'motorcycle' : driver.vehicle === 'car' ? 'car' : 'truck'}"></i>
+            ${driver.vehicle.charAt(0).toUpperCase() + driver.vehicle.slice(1)} • 
+            <i class="fas fa-star" style="color: #FFC107;"></i> ${driver.rating} • 
+            ${driver.deliveries} deliveries
+          </div>
+        </div>
+        <span class="driver-status status-${driver.status}">${driver.status}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('driversList').innerHTML = html;
+  }
+
+  function renderActiveDeliveries(orders) {
+    const html = orders.length > 0 ? orders.map(order => {
+      const driver = drivers.find(d => d.id === order.driverId);
+      return `
+        <div class="order-item" style="border-left-color: var(--success);">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+            <div>
+              <strong style="color: var(--text);">${order.orderRef}</strong>
+              <p style="margin: 0.25rem 0; color: var(--text-light); font-size: 0.9rem;">
+                <i class="fas fa-user"></i> ${order.customer.name}
+              </p>
+              <p style="margin: 0.25rem 0; color: var(--text-light); font-size: 0.9rem;">
+                <i class="fas fa-motorcycle"></i> ${driver ? driver.name : 'Driver assigned'}
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <div style="color: var(--accent); font-weight: 700; margin-bottom: 0.5rem;">${order.total.toLocaleString()} RWF</div>
+              <button class="btn-outline" onclick="trackDelivery('${order.orderRef}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                <i class="fas fa-map-marked-alt"></i> Track
+              </button>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.85rem;">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>${order.customer.address}</span>
+          </div>
+        </div>
+      `;
+    }).join('') : '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No active deliveries</p>';
+
+    document.getElementById('activeDeliveriesList').innerHTML = html;
+  }
+
+  function selectOrder(orderRef) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    selectedOrder = orders.find(o => o.orderRef === orderRef);
+    
+    document.querySelectorAll('.order-item').forEach(item => {
+      item.style.borderLeftColor = 'var(--accent)';
+    });
+    event.target.closest('.order-item').style.borderLeftColor = 'var(--success)';
+    
+    if (selectedDriver) {
+      showAssignmentSection();
+    }
+  }
+
+  function selectDriver(driverId) {
+    const driver = drivers.find(d => d.id === driverId);
+    if (driver.status !== 'available') {
+      showToast('This driver is not available');
+      return;
+    }
+    
+    selectedDriver = driver;
+    renderDriversList();
+    
+    if (selectedOrder) {
+      showAssignmentSection();
+    }
+  }
+
+  function selectVehicle(vehicle) {
+    selectedVehicle = vehicle;
+    document.querySelectorAll('.vehicle-option').forEach(opt => opt.classList.remove('selected'));
+    document.querySelector(`[data-vehicle="${vehicle}"]`).classList.add('selected');
+    
+    if (selectedOrder && selectedDriver) {
+      calculateRoute();
+    }
+  }
+
+  function showAssignmentSection() {
+    document.getElementById('assignmentSection').style.display = 'block';
+    document.getElementById('assignmentSection').scrollIntoView({ behavior: 'smooth' });
+    
+    // Auto-select vehicle based on driver's vehicle
+    if (selectedDriver && !selectedVehicle) {
+      selectVehicle(selectedDriver.vehicle);
+    }
+  }
+
+  function calculateRoute() {
+    const simbaLocation = { lat: -1.9441, lng: 30.0619 }; // Kigali center
+    const customerLocation = { lat: -1.9536 + (Math.random() - 0.5) * 0.1, lng: 30.0606 + (Math.random() - 0.5) * 0.1 };
+    
+    // Initialize map if not already done
+    if (!map) {
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 13,
+        center: simbaLocation
+      });
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer();
+      directionsRenderer.setMap(map);
+    }
+
+    const request = {
+      origin: simbaLocation,
+      destination: customerLocation,
+      travelMode: selectedVehicle === 'motorcycle' ? 'DRIVING' : 'DRIVING'
+    };
+
+    directionsService.route(request, (result, status) => {
+      if (status === 'OK') {
+        directionsRenderer.setDirections(result);
+        
+        const route = result.routes[0].legs[0];
+        const distance = route.distance.text;
+        const duration = route.duration.text;
+        
+        document.getElementById('routeInfo').innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+            <div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${distance}</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Distance</div>
+            </div>
+            <div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">${duration}</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Est. Time</div>
+            </div>
+            <div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">2,000 RWF</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Delivery Fee</div>
+            </div>
+          </div>
+        `;
+      } else {
+        // Fallback if Google Maps API not available
+        document.getElementById('routeInfo').innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+            <div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">5.2 km</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Distance</div>
+            </div>
+            <div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">15 mins</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Est. Time</div>
+            </div>
+            <div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">2,000 RWF</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Delivery Fee</div>
+            </div>
+          </div>
+        `;
+      }
+    });
+  }
+
+  function confirmAssignment() {
+    if (!selectedOrder || !selectedDriver || !selectedVehicle) {
+      showToast('Please select order, driver, and vehicle');
+      return;
+    }
+
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orderIndex = orders.findIndex(o => o.orderRef === selectedOrder.orderRef);
+    
+    if (orderIndex !== -1) {
+      orders[orderIndex].status = 'In Transit';
+      orders[orderIndex].driverId = selectedDriver.id;
+      orders[orderIndex].driverName = selectedDriver.name;
+      orders[orderIndex].vehicle = selectedVehicle;
+      orders[orderIndex].assignedDate = new Date().toISOString();
+      
+      localStorage.setItem('orders', JSON.stringify(orders));
+      
+      showToast(`Order ${selectedOrder.orderRef} assigned to ${selectedDriver.name}`);
+      
+      cancelAssignment();
+      loadDeliveryData();
+    }
+  }
+
+  function cancelAssignment() {
+    selectedOrder = null;
+    selectedDriver = null;
+    selectedVehicle = null;
+    document.getElementById('assignmentSection').style.display = 'none';
+    renderDriversList();
+  }
+
+  function trackDelivery(orderRef) {
+    showToast('Opening live tracking for ' + orderRef);
+    // This would open a real-time tracking interface
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // Load Google Maps API
+  function loadGoogleMaps() {
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
+  function initMap() {
+    // Map will be initialized when route is calculated
+  }
+
+  window.onload = () => {
+    loadDeliveryData();
+    // Uncomment when you have Google Maps API key
+    // loadGoogleMaps();
+  };
+</script>
+
+</body>
+</html>

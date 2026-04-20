@@ -70,6 +70,9 @@ async function loadProducts() {
     // Handle both array and object with products property
     products = Array.isArray(data) ? data : (data.products || []);
     
+    // Cache products for dashboard
+    localStorage.setItem('cachedProducts', JSON.stringify(products));
+    
     console.log(`Loaded ${products.length} products`);
     
     // Extract unique categories

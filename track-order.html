@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Your Order — Simba Supermarket</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    .track-container { max-width: 1000px; margin: 0 auto; }
+    .track-header { text-align: center; margin-bottom: 3rem; }
+    .track-header h1 { color: var(--text); margin: 0 0 0.5rem 0; }
+    .track-header p { color: var(--text-light); }
+    .order-lookup { background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
+    .lookup-form { display: flex; gap: 1rem; }
+    .lookup-input { flex: 1; padding: 1rem; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem; background: var(--surface); color: var(--text); }
+    .lookup-btn { padding: 1rem 2rem; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
+    .lookup-btn:hover { background: var(--primary); }
+    .tracking-card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; display: none; }
+    .status-timeline { position: relative; padding: 2rem 0; }
+    .timeline-item { display: flex; gap: 1.5rem; margin-bottom: 2rem; position: relative; }
+    .timeline-item::before { content: ''; position: absolute; left: 19px; top: 50px; bottom: -30px; width: 2px; background: var(--border); }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+    .timeline-item.completed .timeline-icon { background: var(--success); border-color: var(--success); color: white; }
+    .timeline-item.active .timeline-icon { background: var(--accent); border-color: var(--accent); color: white; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(225, 217, 188, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(225, 217, 188, 0); } }
+    .timeline-content { flex: 1; }
+    .timeline-title { font-weight: 600; color: var(--text); margin: 0 0 0.5rem 0; }
+    .timeline-desc { color: var(--text-light); font-size: 0.9rem; margin: 0; }
+    .timeline-time { color: var(--text-light); font-size: 0.85rem; margin-top: 0.25rem; }
+    .driver-info { background: var(--surface); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; display: flex; gap: 1.5rem; align-items: center; }
+    .driver-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 2rem; }
+    .driver-details { flex: 1; }
+    .driver-name { font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 0 0 0.5rem 0; }
+    .driver-meta { color: var(--text-light); font-size: 0.9rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+    .call-driver-btn { padding: 0.75rem 1.5rem; background: var(--success); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+    .call-driver-btn:hover { background: #45a049; }
+    .map-container { width: 100%; height: 400px; border-radius: 12px; background: var(--surface); border: 2px solid var(--border); margin: 2rem 0; position: relative; overflow: hidden; }
+    .delivery-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 2rem 0; }
+    .stat-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; text-align: center; }
+    .stat-icon { font-size: 2rem; color: var(--accent); margin-bottom: 0.5rem; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text); margin: 0.5rem 0; }
+    .stat-label { color: var(--text-light); font-size: 0.9rem; }
+    .order-items { background: var(--surface); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }
+    .order-items h3 { margin: 0 0 1rem 0; color: var(--text); }
+    .item-row { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+    .item-row:last-child { border-bottom: none; }
+    .eta-banner { background: linear-gradient(135deg, var(--accent), var(--primary)); color: white; padding: 1.5rem; border-radius: 12px; text-align: center; margin: 2rem 0; }
+    .eta-banner h2 { margin: 0 0 0.5rem 0; font-size: 2rem; }
+    .eta-banner p { margin: 0; opacity: 0.9; }
+    .contact-support { background: var(--surface); border-radius: 12px; padding: 1.5rem; text-align: center; margin: 2rem 0; }
+    .contact-support a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    @media (max-width: 768px) {
+      .lookup-form { flex-direction: column; }
+      .delivery-stats { grid-template-columns: 1fr; }
+      .driver-info { flex-direction: column; text-align: center; }
+      .driver-meta { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <!-- LEFT: Logo -->
+    <div class="nav-left">
+      <a href="index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+    </div>
+
+    <!-- CENTER: Page Title -->
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0; font-size: 1.3rem;">Track Your Order</h2>
+    </div>
+
+    <!-- RIGHT: Actions -->
+    <div class="nav-right">
+      <a href="index.html" class="nav-link">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      
+      <a href="customer-dashboard.html" class="nav-link">
+        <i class="fas fa-user"></i>
+        <span>Dashboard</span>
+      </a>
+      
+      <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      
+      <a href="cart.html" class="cart-btn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+        <span class="cart-text">Cart</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="section">
+  <div class="track-container">
+    <div class="track-header">
+      <h1><i class="fas fa-map-marked-alt"></i> Track Your Delivery</h1>
+      <p>Enter your order reference number to see real-time delivery status</p>
+      <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 0.5rem;">
+        <i class="fas fa-info-circle"></i> Demo: Try <strong style="color: var(--accent);">ORD-20250128-003</strong> (In Transit) or <strong style="color: var(--accent);">ORD-20250128-004</strong> (In Transit)
+      </p>
+    </div>
+
+    <!-- Order Lookup -->
+    <div class="order-lookup">
+      <div class="lookup-form">
+        <input type="text" class="lookup-input" id="orderRefInput" placeholder="Enter Order Reference (e.g., ORD-20250128-003)" />
+        <button class="lookup-btn" onclick="trackOrder()">
+          <i class="fas fa-search"></i> Track Order
+        </button>
+      </div>
+      <div style="text-align: center; margin-top: 1rem;">
+        <button class="btn-outline" onclick="loadDemoOrder()" style="padding: 0.75rem 1.5rem;">
+          <i class="fas fa-play"></i> Load Demo Order (In Transit)
+        </button>
+      </div>
+    </div>
+
+    <!-- Tracking Information -->
+    <div class="tracking-card" id="trackingCard">
+      <!-- ETA Banner -->
+      <div class="eta-banner" id="etaBanner" style="display: none;">
+        <h2><i class="fas fa-clock"></i> <span id="etaTime">15 minutes</span></h2>
+        <p>Estimated delivery time</p>
+      </div>
+
+      <!-- Order Status Timeline -->
+      <div class="status-timeline" id="statusTimeline"></div>
+
+      <!-- Driver Information -->
+      <div id="driverSection" style="display: none;">
+        <h3 style="color: var(--text); margin: 0 0 1rem 0;">
+          <i class="fas fa-user-tie"></i> Your Delivery Driver
+        </h3>
+        <div class="driver-info" id="driverInfo"></div>
+      </div>
+
+      <!-- Live Map -->
+      <div id="mapSection" style="display: none;">
+        <h3 style="color: var(--text); margin: 0 0 1rem 0;">
+          <i class="fas fa-route"></i> Live Tracking
+        </h3>
+        <div class="map-container" id="trackingMap"></div>
+      </div>
+
+      <!-- Delivery Stats -->
+      <div class="delivery-stats" id="deliveryStats" style="display: none;"></div>
+
+      <!-- Order Items -->
+      <div class="order-items" id="orderItems"></div>
+
+      <!-- Contact Support -->
+      <div class="contact-support">
+        <p style="color: var(--text-light); margin: 0 0 0.5rem 0;">
+          <i class="fas fa-headset"></i> Need help with your order?
+        </p>
+        <a href="tel:+250788000000">
+          <i class="fas fa-phone"></i> Call Support: +250 788 000 000
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script>
+  let trackingMap = null;
+  let driverMarker = null;
+  let customerMarker = null;
+  let routeLine = null;
+  let trackingInterval = null;
+
+  const SIMBA_LOCATION = { lat: -1.9441, lng: 30.0619 };
+
+  function trackOrder() {
+    const orderRef = document.getElementById('orderRefInput').value.trim();
+    
+    if (!orderRef) {
+      showToast('Please enter an order reference number');
+      return;
+    }
+
+    let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    // If no orders exist, create dummy orders for demonstration
+    if (orders.length === 0) {
+      orders = createDummyOrders();
+      localStorage.setItem('orders', JSON.stringify(orders));
+    }
+    
+    const order = orders.find(o => o.orderRef.toLowerCase() === orderRef.toLowerCase());
+
+    if (!order) {
+      // Show available order refs
+      const availableRefs = orders.map(o => o.orderRef).join(', ');
+      showToast('Order not found. Try: ' + availableRefs);
+      return;
+    }
+
+    displayOrderTracking(order);
+  }
+  
+  function loadDemoOrder() {
+    // Clear existing orders and create fresh dummy data
+    const orders = createDummyOrders();
+    localStorage.setItem('orders', JSON.stringify(orders));
+    
+    // Load the first "In Transit" order (ORD-20250128-003)
+    document.getElementById('orderRefInput').value = 'ORD-20250128-003';
+    trackOrder();
+  }
+  
+  function createDummyOrders() {
+    const dummyProducts = [
+      { id: 1, name: 'Inyange Milk 1L', price: 1200, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Milk' },
+      { id: 2, name: 'Azam Cooking Oil 2L', price: 8500, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Oil' },
+      { id: 3, name: 'Bralirwa Primus Beer', price: 1500, category: 'Alcoholic Drinks', image: 'https://via.placeholder.com/150?text=Beer' },
+      { id: 4, name: 'Nivea Body Lotion', price: 4500, category: 'Cosmetics', image: 'https://via.placeholder.com/150?text=Lotion' },
+      { id: 5, name: 'Rice 5kg', price: 12000, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Rice' }
+    ];
+    
+    const orders = [];
+    const statuses = ['Delivered', 'Confirmed', 'In Transit', 'In Transit'];
+    const orderRefs = ['ORD-20250128-001', 'ORD-20250128-002', 'ORD-20250128-003', 'ORD-20250128-004'];
+    const drivers = [
+      { id: 1, name: 'Jean Bosco', phone: '+250 788 111 222', vehicle: 'motorcycle' },
+      { id: 2, name: 'Marie Claire', phone: '+250 788 222 333', vehicle: 'car' },
+      { id: 4, name: 'Grace Uwase', phone: '+250 788 444 555', vehicle: 'motorcycle' }
+    ];
+    
+    for (let i = 0; i < 4; i++) {
+      const itemCount = Math.floor(Math.random() * 3) + 2;
+      const items = [];
+      let subtotal = 0;
+      
+      for (let j = 0; j < itemCount; j++) {
+        const product = dummyProducts[Math.floor(Math.random() * dummyProducts.length)];
+        const quantity = Math.floor(Math.random() * 3) + 1;
+        items.push({ ...product, quantity });
+        subtotal += product.price * quantity;
+      }
+      
+      const delivery = 2000;
+      const total = subtotal + delivery;
+      const daysAgo = i;
+      const status = statuses[i];
+      const driver = status === 'In Transit' ? drivers[i % drivers.length] : null;
+      
+      orders.push({
+        orderRef: orderRefs[i],
+        customer: {
+          name: 'Jean Mukiza',
+          phone: '+250 788 123 456',
+          address: 'KN 4 Ave, Nyarugenge, Kigali'
+        },
+        items: items,
+        subtotal: subtotal,
+        discount: 0,
+        discountPercent: 0,
+        delivery: delivery,
+        total: total,
+        paymentMethod: ['momo', 'airtel', 'cash'][i % 3],
+        orderDate: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+        status: status,
+        driverId: driver ? driver.id : null,
+        driverName: driver ? driver.name : null,
+        driverPhone: driver ? driver.phone : null,
+        vehicle: driver ? driver.vehicle : null,
+        assignedDate: driver ? new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString() : null,
+        customerLocation: {
+          lat: SIMBA_LOCATION.lat + (Math.random() - 0.5) * 0.05,
+          lng: SIMBA_LOCATION.lng + (Math.random() - 0.5) * 0.05
+        },
+        pointsEarned: Math.floor(total / 100)
+      });
+    }
+    
+    return orders;
+  }
+
+  function displayOrderTracking(order) {
+    document.getElementById('trackingCard').style.display = 'block';
+    document.getElementById('trackingCard').scrollIntoView({ behavior: 'smooth' });
+
+    // Display status timeline
+    displayStatusTimeline(order);
+
+    // Display order items
+    displayOrderItems(order);
+
+    // If order has driver assigned, show driver info and tracking
+    if (order.driverId && order.status === 'In Transit') {
+      displayDriverInfo(order);
+      displayDeliveryStats(order);
+      displayLiveTracking(order);
+      document.getElementById('etaBanner').style.display = 'block';
+    } else if (order.status === 'Delivered') {
+      document.getElementById('etaBanner').style.display = 'none';
+    }
+  }
+
+  function displayStatusTimeline(order) {
+    const statuses = [
+      { 
+        status: 'Pending', 
+        icon: 'fa-clock', 
+        title: 'Order Placed', 
+        desc: 'Your order has been received',
+        completed: true
+      },
+      { 
+        status: 'Confirmed', 
+        icon: 'fa-check-circle', 
+        title: 'Order Confirmed', 
+        desc: 'We are preparing your order',
+        completed: order.status !== 'Pending'
+      },
+      { 
+        status: 'In Transit', 
+        icon: 'fa-shipping-fast', 
+        title: 'Out for Delivery', 
+        desc: order.driverName ? `Driver ${order.driverName} is on the way` : 'Driver will be assigned soon',
+        completed: order.status === 'Delivered',
+        active: order.status === 'In Transit'
+      },
+      { 
+        status: 'Delivered', 
+        icon: 'fa-box-open', 
+        title: 'Delivered', 
+        desc: 'Order delivered successfully',
+        completed: order.status === 'Delivered'
+      }
+    ];
+
+    const html = statuses.map(item => {
+      const statusClass = item.completed ? 'completed' : item.active ? 'active' : '';
+      const time = item.completed ? new Date(order.orderDate).toLocaleString() : '';
+      
+      return `
+        <div class="timeline-item ${statusClass}">
+          <div class="timeline-icon">
+            <i class="fas ${item.icon}"></i>
+          </div>
+          <div class="timeline-content">
+            <h4 class="timeline-title">${item.title}</h4>
+            <p class="timeline-desc">${item.desc}</p>
+            ${time ? `<div class="timeline-time"><i class="fas fa-clock"></i> ${time}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('statusTimeline').innerHTML = html;
+  }
+
+  function displayDriverInfo(order) {
+    document.getElementById('driverSection').style.display = 'block';
+    
+    const driverInitial = order.driverName ? order.driverName.charAt(0) : 'D';
+    const driverPhone = order.driverPhone || '+250 788 XXX XXX';
+    const vehicle = order.vehicle || 'motorcycle';
+    const vehicleIcon = vehicle === 'motorcycle' ? 'fa-motorcycle' : vehicle === 'car' ? 'fa-car' : 'fa-truck';
+
+    document.getElementById('driverInfo').innerHTML = `
+      <div class="driver-avatar">${driverInitial}</div>
+      <div class="driver-details">
+        <h3 class="driver-name">${order.driverName || 'Driver Assigned'}</h3>
+        <div class="driver-meta">
+          <span><i class="fas fa-phone"></i> ${driverPhone}</span>
+          <span><i class="fas ${vehicleIcon}"></i> ${vehicle.charAt(0).toUpperCase() + vehicle.slice(1)}</span>
+          <span><i class="fas fa-star" style="color: #FFC107;"></i> 4.8 Rating</span>
+        </div>
+      </div>
+      <button class="call-driver-btn" onclick="callDriver('${driverPhone}')">
+        <i class="fas fa-phone-alt"></i> Call Driver
+      </button>
+    `;
+  }
+
+  function displayDeliveryStats(order) {
+    document.getElementById('deliveryStats').style.display = 'grid';
+    
+    const distance = '5.2 km';
+    const eta = '15 mins';
+    const fee = '2,000 RWF';
+
+    document.getElementById('deliveryStats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-route"></i></div>
+        <div class="stat-value">${distance}</div>
+        <div class="stat-label">Distance</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+        <div class="stat-value">${eta}</div>
+        <div class="stat-label">Estimated Time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+        <div class="stat-value">${fee}</div>
+        <div class="stat-label">Delivery Fee</div>
+      </div>
+    `;
+
+    document.getElementById('etaTime').textContent = eta;
+  }
+
+  function displayLiveTracking(order) {
+    document.getElementById('mapSection').style.display = 'block';
+
+    // Check if Google Maps is available
+    if (typeof google !== 'undefined' && google.maps) {
+      initGoogleMapsTracking(order);
+    } else {
+      showFallbackTracking(order);
+    }
+  }
+
+  function initGoogleMapsTracking(order) {
+    try {
+      const customerLocation = order.customerLocation || {
+        lat: SIMBA_LOCATION.lat + (Math.random() - 0.5) * 0.05,
+        lng: SIMBA_LOCATION.lng + (Math.random() - 0.5) * 0.05
+      };
+
+      const driverLocation = {
+        lat: SIMBA_LOCATION.lat + (Math.random() - 0.5) * 0.03,
+        lng: SIMBA_LOCATION.lng + (Math.random() - 0.5) * 0.03
+      };
+
+      if (!trackingMap) {
+        trackingMap = new google.maps.Map(document.getElementById('trackingMap'), {
+          zoom: 13,
+          center: driverLocation
+        });
+      }
+
+      // Driver marker
+      driverMarker = new google.maps.Marker({
+        position: driverLocation,
+        map: trackingMap,
+        title: 'Your Driver',
+        icon: {
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          scale: 6,
+          fillColor: '#E1D9BC',
+          fillOpacity: 1,
+          strokeColor: '#fff',
+          strokeWeight: 2
+        }
+      });
+
+      // Customer marker
+      customerMarker = new google.maps.Marker({
+        position: customerLocation,
+        map: trackingMap,
+        title: 'Your Location',
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: '#4CAF50',
+          fillOpacity: 1,
+          strokeColor: '#fff',
+          strokeWeight: 2
+        }
+      });
+
+      // Draw route
+      const directionsService = new google.maps.DirectionsService();
+      const directionsRenderer = new google.maps.DirectionsRenderer({
+        map: trackingMap,
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: '#E1D9BC', strokeWeight: 4 }
+      });
+
+      directionsService.route({
+        origin: driverLocation,
+        destination: customerLocation,
+        travelMode: google.maps.TravelMode.DRIVING
+      }, (result, status) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(result);
+        }
+      });
+
+      // Simulate real-time movement
+      simulateDriverMovement(driverLocation, customerLocation);
+    } catch (error) {
+      console.error('Google Maps error:', error);
+      showFallbackTracking(order);
+    }
+  }
+
+  function showFallbackTracking(order) {
+    document.getElementById('trackingMap').innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 1.5rem; padding: 2rem;">
+        <i class="fas fa-map-marked-alt" style="font-size: 4rem; color: var(--accent); opacity: 0.5;"></i>
+        <div style="text-align: center;">
+          <h3 style="color: var(--text); margin: 0 0 0.5rem 0;">Your Order is On The Way!</h3>
+          <p style="color: var(--text-light); margin: 0;">
+            <i class="fas fa-shipping-fast"></i> Driver ${order.driverName || 'assigned'} is heading to your location
+          </p>
+          <p style="color: var(--text-light); margin: 1rem 0 0 0; font-size: 0.9rem;">
+            <i class="fas fa-map-marker-alt"></i> ${order.customer.address}
+          </p>
+        </div>
+        <div style="display: flex; gap: 2rem; margin-top: 1rem;">
+          <div style="text-align: center;">
+            <i class="fas fa-warehouse" style="font-size: 2rem; color: var(--primary);"></i>
+            <p style="margin: 0.5rem 0 0 0; color: var(--text-light); font-size: 0.85rem;">Simba Store</p>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <i class="fas fa-arrow-right" style="font-size: 2rem; color: var(--accent); animation: slideRight 1.5s infinite;"></i>
+          </div>
+          <div style="text-align: center;">
+            <i class="fas fa-home" style="font-size: 2rem; color: var(--success);"></i>
+            <p style="margin: 0.5rem 0 0 0; color: var(--text-light); font-size: 0.85rem;">Your Location</p>
+          </div>
+        </div>
+      </div>
+      <style>
+        @keyframes slideRight {
+          0%, 100% { transform: translateX(0); opacity: 1; }
+          50% { transform: translateX(10px); opacity: 0.5; }
+        }
+      </style>
+    `;
+  }
+
+  function simulateDriverMovement(driverPos, customerPos) {
+    if (trackingInterval) clearInterval(trackingInterval);
+
+    trackingInterval = setInterval(() => {
+      const latDiff = (customerPos.lat - driverPos.lat) * 0.1;
+      const lngDiff = (customerPos.lng - driverPos.lng) * 0.1;
+
+      driverPos.lat += latDiff;
+      driverPos.lng += lngDiff;
+
+      if (driverMarker) {
+        driverMarker.setPosition(driverPos);
+      }
+
+      // Check if arrived
+      const distance = Math.sqrt(
+        Math.pow(customerPos.lat - driverPos.lat, 2) +
+        Math.pow(customerPos.lng - driverPos.lng, 2)
+      );
+
+      if (distance < 0.001) {
+        clearInterval(trackingInterval);
+        showToast('Driver has arrived at your location!');
+      }
+    }, 2000);
+  }
+
+  function displayOrderItems(order) {
+    const itemsHtml = order.items.map(item => `
+      <div class="item-row">
+        <span style="color: var(--text);">${item.quantity}x ${item.name}</span>
+        <span style="color: var(--accent); font-weight: 600;">${item.price.toLocaleString()} RWF</span>
+      </div>
+    `).join('');
+
+    document.getElementById('orderItems').innerHTML = `
+      <h3><i class="fas fa-box"></i> Order Items (${order.items.length})</h3>
+      ${itemsHtml}
+      <div class="item-row" style="border-top: 2px solid var(--border); margin-top: 1rem; padding-top: 1rem;">
+        <strong style="color: var(--text);">Total</strong>
+        <strong style="color: var(--accent); font-size: 1.2rem;">${order.total.toLocaleString()} RWF</strong>
+      </div>
+    `;
+  }
+
+  function callDriver(phone) {
+    window.location.href = `tel:${phone}`;
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  window.onload = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderRef = urlParams.get('ref');
+    if (orderRef) {
+      document.getElementById('orderRefInput').value = orderRef;
+      trackOrder();
+    } else {
+      // Create dummy orders on page load for easy demo
+      let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      if (orders.length === 0) {
+        orders = createDummyOrders();
+        localStorage.setItem('orders', JSON.stringify(orders));
+      }
+    }
+    
+    // Update cart badge
+    updateCartBadge();
+    
+    // Load theme
+    loadTheme();
+  };
+  
+  function updateCartBadge() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const badge = document.getElementById('cartBadge');
+    if (badge) badge.textContent = totalItems;
+  }
+  
+  function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    const icon = document.querySelector('#themeToggle i');
+    if (icon) {
+      icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    }
+  }
+  
+  function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    const icon = document.querySelector('#themeToggle i');
+    if (icon) {
+      icon.className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    }
+  }
+</script>
+
+</body>
+</html>

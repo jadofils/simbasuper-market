@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Support — Simba Supermarket</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    .chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+    .chat-button { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; }
+    .chat-button:hover { transform: scale(1.1); }
+    .chat-window { position: fixed; bottom: 90px; right: 20px; width: 380px; height: 550px; background: var(--card-bg); border-radius: 20px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); display: none; flex-direction: column; overflow: hidden; border: 2px solid var(--border); }
+    .chat-window.open { display: flex; animation: slideUp 0.3s; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .chat-body { flex: 1; padding: 1rem; overflow-y: auto; background: var(--bg); }
+    .chat-message { margin-bottom: 1rem; display: flex; gap: 0.5rem; }
+    .chat-message.bot { justify-content: flex-start; }
+    .chat-message.user { justify-content: flex-end; }
+    .message-bubble { max-width: 70%; padding: 0.75rem 1rem; border-radius: 12px; }
+    .bot .message-bubble { background: var(--surface); color: var(--text); border-bottom-left-radius: 4px; }
+    .user .message-bubble { background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+    .chat-footer { padding: 1rem; background: var(--card-bg); border-top: 2px solid var(--border); display: flex; gap: 0.5rem; }
+    .chat-input { flex: 1; padding: 0.75rem; border: 2px solid var(--border); border-radius: 25px; background: var(--bg); color: var(--text); }
+    .send-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .quick-replies { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .quick-reply { padding: 0.5rem 1rem; background: var(--surface); border: 2px solid var(--border); border-radius: 20px; cursor: pointer; font-size: 0.85rem; color: var(--text); transition: all 0.3s; }
+    .quick-reply:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .typing-indicator { display: flex; gap: 4px; padding: 0.75rem 1rem; }
+    .typing-dot { width: 8px; height: 8px; background: var(--text-light); border-radius: 50%; animation: typing 1.4s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+    @media (max-width: 768px) {
+      .chat-window { width: calc(100vw - 40px); height: calc(100vh - 120px); bottom: 90px; right: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+      <a href="support.html" class="categories-menu-btn active" title="Help & Support">
+        <i class="fas fa-question-circle"></i>
+        <span>FAQ</span>
+      </a>
+    </div>
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0;">Customer Support</h2>
+    </div>
+    <div class="nav-right">
+      <a href="rewards.html" class="nav-icon-btn" title="Rewards">
+        <i class="fas fa-gift"></i>
+      </a>
+      <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      <a href="cart.html" class="cart-btn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+      </a>
+    </div>
+  </div>
+  
+  <!-- Mobile Bottom Nav -->
+  <div class="mobile-nav">
+    <a href="index.html" class="mobile-nav-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="support.html" class="mobile-nav-item active">
+      <i class="fas fa-question-circle"></i>
+      <span>FAQ</span>
+    </a>
+    <a href="rewards.html" class="mobile-nav-item">
+      <i class="fas fa-gift"></i>
+      <span>Rewards</span>
+    </a>
+    <a href="cart.html" class="mobile-nav-item">
+      <i class="fas fa-shopping-cart"></i>
+      <span>Cart</span>
+      <span class="mobile-badge" id="mobileCartBadge">0</span>
+    </a>
+  </div>
+</nav>
+
+<div class="section">
+  <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Shop</a>
+  
+  <div style="text-align: center; padding: 3rem 1rem;">
+    <i class="fas fa-headset" style="font-size: 5rem; color: var(--accent); margin-bottom: 1rem;"></i>
+    <h1 style="color: var(--text); margin-bottom: 1rem;">24/7 Customer Support</h1>
+    <p style="color: var(--text-light); font-size: 1.2rem; max-width: 600px; margin: 0 auto 2rem;">
+      We're here to help! Chat with our support team or browse our help center.
+    </p>
+    <button class="btn-primary" onclick="openChat()" style="font-size: 1.1rem; padding: 1rem 2rem;">
+      <i class="fas fa-comments"></i> Start Live Chat
+    </button>
+  </div>
+
+  <div class="data-section">
+    <h2><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
+    <div style="display: grid; gap: 1rem;">
+      <details style="background: var(--surface); padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+        <summary style="font-weight: 600; color: var(--text); cursor: pointer;">How do I track my order?</summary>
+        <p style="color: var(--text-body); margin-top: 1rem;">You can track your order by logging into your account and viewing your order history. You'll receive SMS updates at each stage of delivery.</p>
+      </details>
+      <details style="background: var(--surface); padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+        <summary style="font-weight: 600; color: var(--text); cursor: pointer;">What payment methods do you accept?</summary>
+        <p style="color: var(--text-body); margin-top: 1rem;">We accept MTN MoMo, Airtel Money, and Cash on Delivery. All mobile money payments are secure and instant.</p>
+      </details>
+      <details style="background: var(--surface); padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+        <summary style="font-weight: 600; color: var(--text); cursor: pointer;">How long does delivery take?</summary>
+        <p style="color: var(--text-body); margin-top: 1rem;">Standard delivery within Kigali takes 2-4 hours. Outside Kigali, delivery takes 1-2 business days.</p>
+      </details>
+      <details style="background: var(--surface); padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+        <summary style="font-weight: 600; color: var(--text); cursor: pointer;">Can I return or exchange products?</summary>
+        <p style="color: var(--text-body); margin-top: 1rem;">Yes! You can return or exchange products within 7 days of delivery. Items must be unused and in original packaging.</p>
+      </details>
+      <details style="background: var(--surface); padding: 1.5rem; border-radius: 12px; cursor: pointer;">
+        <summary style="font-weight: 600; color: var(--text); cursor: pointer;">How do I earn loyalty points?</summary>
+        <p style="color: var(--text-body); margin-top: 1rem;">Earn 1 point for every 100 RWF spent. Refer friends to earn 500 bonus points. Redeem points for discounts and rewards!</p>
+      </details>
+    </div>
+  </div>
+
+  <div class="data-section">
+    <h2><i class="fas fa-phone"></i> Contact Information</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+      <div style="text-align: center; padding: 2rem; background: var(--surface); border-radius: 12px;">
+        <i class="fas fa-phone" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem;"></i>
+        <h3 style="color: var(--text); margin-bottom: 0.5rem;">Phone</h3>
+        <p style="color: var(--text-body);">+250 788 000 000</p>
+        <p style="color: var(--text-light); font-size: 0.9rem;">Mon-Sun: 8AM - 10PM</p>
+      </div>
+      <div style="text-align: center; padding: 2rem; background: var(--surface); border-radius: 12px;">
+        <i class="fas fa-envelope" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem;"></i>
+        <h3 style="color: var(--text); margin-bottom: 0.5rem;">Email</h3>
+        <p style="color: var(--text-body);">support@simbasupermarket.rw</p>
+        <p style="color: var(--text-light); font-size: 0.9rem;">Response within 24 hours</p>
+      </div>
+      <div style="text-align: center; padding: 2rem; background: var(--surface); border-radius: 12px;">
+        <i class="fab fa-whatsapp" style="font-size: 2.5rem; color: #25D366; margin-bottom: 1rem;"></i>
+        <h3 style="color: var(--text); margin-bottom: 0.5rem;">WhatsApp</h3>
+        <p style="color: var(--text-body);">+250 788 000 000</p>
+        <p style="color: var(--text-light); font-size: 0.9rem;">Instant messaging</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat Widget -->
+<div class="chat-widget">
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+      <div>
+        <h3 style="margin: 0;">Simba Support</h3>
+        <p style="margin: 0; font-size: 0.85rem; opacity: 0.9;">We typically reply instantly</p>
+      </div>
+      <button onclick="closeChat()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="chat-message bot">
+        <div class="message-bubble">
+          <strong>Simba Support</strong>
+          <p style="margin: 0.5rem 0 0 0;">Hello! 👋 How can we help you today?</p>
+          <div class="quick-replies">
+            <div class="quick-reply" onclick="sendQuickReply('Track my order')">📦 Track Order</div>
+            <div class="quick-reply" onclick="sendQuickReply('Payment issue')">💳 Payment Help</div>
+            <div class="quick-reply" onclick="sendQuickReply('Product question')">🛍️ Product Info</div>
+            <div class="quick-reply" onclick="sendQuickReply('Delivery time')">🚚 Delivery Time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-footer">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." onkeypress="handleEnter(event)">
+      <button class="send-btn" onclick="sendMessage()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+  <button class="chat-button" id="chatButton" onclick="toggleChat()">
+    <i class="fas fa-comments"></i>
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div><div class="footer-logo"><i class="fas fa-shopping-bag"></i><span class="logo-text">Simba Supermarket</span></div></div>
+    <div><p>© 2025 Simba Supermarket</p></div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+  const responses = {
+    'track': 'To track your order, please provide your order reference number (e.g., ORD-12345). You can find it in your order confirmation email or SMS.',
+    'payment': 'For payment issues, please ensure: 1) You have sufficient balance in your MoMo account 2) Your PIN is correct 3) Your phone number is registered for mobile money. Need more help?',
+    'product': 'I can help you with product information! Please tell me which product you\'re interested in, or you can search our catalog at simbasupermarket.rw',
+    'delivery': 'Delivery times: Within Kigali: 2-4 hours | Outside Kigali: 1-2 business days. You can choose your preferred delivery time slot at checkout!',
+    'return': 'You can return products within 7 days of delivery. Items must be unused and in original packaging. Contact us with your order number to start a return.',
+    'points': 'Earn 1 point for every 100 RWF spent! Refer friends to earn 500 bonus points. Visit our Rewards page to see your balance and redeem rewards.',
+    'default': 'Thank you for your message! A support agent will respond shortly. For urgent matters, please call +250 788 000 000.'
+  };
+
+  function toggleChat() {
+    const chatWindow = document.getElementById('chatWindow');
+    chatWindow.classList.toggle('open');
+  }
+
+  function openChat() {
+    document.getElementById('chatWindow').classList.add('open');
+  }
+
+  function closeChat() {
+    document.getElementById('chatWindow').classList.remove('open');
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    addMessage(message, 'user');
+    input.value = '';
+    
+    setTimeout(() => {
+      showTyping();
+      setTimeout(() => {
+        hideTyping();
+        const response = getResponse(message);
+        addMessage(response, 'bot');
+      }, 1500);
+    }, 500);
+  }
+
+  function sendQuickReply(message) {
+    addMessage(message, 'user');
+    
+    setTimeout(() => {
+      showTyping();
+      setTimeout(() => {
+        hideTyping();
+        const response = getResponse(message);
+        addMessage(response, 'bot');
+      }, 1500);
+    }, 500);
+  }
+
+  function addMessage(text, sender) {
+    const chatBody = document.getElementById('chatBody');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}`;
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.innerHTML = sender === 'bot' ? `<strong>Simba Support</strong><p style="margin: 0.5rem 0 0 0;">${text}</p>` : text;
+    
+    messageDiv.appendChild(bubble);
+    chatBody.appendChild(messageDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function showTyping() {
+    const chatBody = document.getElementById('chatBody');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'chat-message bot';
+    typingDiv.id = 'typingIndicator';
+    typingDiv.innerHTML = `
+      <div class="message-bubble">
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    `;
+    chatBody.appendChild(typingDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function hideTyping() {
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.remove();
+  }
+
+  function getResponse(message) {
+    const msg = message.toLowerCase();
+    
+    if (msg.includes('track') || msg.includes('order')) return responses.track;
+    if (msg.includes('payment') || msg.includes('momo') || msg.includes('pay')) return responses.payment;
+    if (msg.includes('product') || msg.includes('item')) return responses.product;
+    if (msg.includes('delivery') || msg.includes('shipping')) return responses.delivery;
+    if (msg.includes('return') || msg.includes('refund')) return responses.return;
+    if (msg.includes('point') || msg.includes('reward') || msg.includes('loyalty')) return responses.points;
+    
+    return responses.default;
+  }
+
+  function handleEnter(event) {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Modal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Modal Test</h1>
+  <button onclick="testModal()" class="btn-primary">Open Modal Test</button>
+  
+  <div class="modal-overlay" id="checkoutModal" style="display: none">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <h2>Test Modal</h2>
+      <p>If you see this, the modal works!</p>
+    </div>
+  </div>
+  
+  <script>
+    function testModal() {
+      console.log('testModal called');
+      const modal = document.getElementById('checkoutModal');
+      console.log('Modal element:', modal);
+      if (modal) {
+        modal.style.display = 'flex';
+        console.log('Modal display set to flex');
+      } else {
+        console.error('Modal not found!');
+      }
+    }
+    
+    function closeModal() {
+      const modal = document.getElementById('checkoutModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+    
+    window.testModal = testModal;
+    window.closeModal = closeModal;
+  </script>
+</body>
+</html>

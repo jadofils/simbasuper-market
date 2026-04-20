@@ -4,33 +4,64 @@ let favoriteProducts = [];
 let currentFilter = 'all';
 let currentSort = 'recent';
 
+// Dummy products with real images (fallback)
+const dummyProducts = [
+  { id: 1, name: 'Inyange Milk 1L', price: 1200, category: 'Food Products', image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=300&h=300&fit=crop' },
+  { id: 5, name: 'Azam Cooking Oil 2L', price: 8500, category: 'Food Products', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&h=300&fit=crop' },
+  { id: 12, name: 'Bralirwa Primus Beer', price: 1500, category: 'Alcoholic Drinks', image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=300&h=300&fit=crop' },
+  { id: 23, name: 'Nivea Body Lotion', price: 4500, category: 'Cosmetics & Personal Care', image: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop' },
+  { id: 45, name: 'Rice 5kg', price: 12000, category: 'Food Products', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&h=300&fit=crop' },
+  { id: 67, name: 'Sugar 2kg', price: 3500, category: 'Food Products', image: 'https://images.unsplash.com/photo-1519735777090-ec97a2f5f6f1?w=300&h=300&fit=crop' },
+  { id: 89, name: 'Colgate Toothpaste', price: 2500, category: 'Cosmetics & Personal Care', image: 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=300&h=300&fit=crop' },
+  { id: 102, name: 'Dove Soap', price: 1800, category: 'Cosmetics & Personal Care', image: 'https://images.unsplash.com/photo-1585128903994-03b9e8e2d8e0?w=300&h=300&fit=crop' }
+];
+
 // Load products and favorites
 async function loadFavorites() {
-  try {
-    console.log('Loading favorites...');
-    const response = await fetch('simba_products.json');
-    const data = await response.json();
-    allProducts = data.products;
-    console.log('Loaded products:', allProducts.length);
-    console.log('First 5 product IDs:', allProducts.slice(0, 5).map(p => p.id));
-    
-    const likedIds = getLikedProducts();
-    console.log('Liked IDs:', likedIds);
-    console.log('Liked IDs type:', typeof likedIds[0]);
-    console.log('Product ID type:', typeof allProducts[0].id);
-    
-    favoriteProducts = allProducts.filter(p => likedIds.includes(p.id));
-    console.log('Favorite products:', favoriteProducts.length);
-    
-    if (favoriteProducts.length === 0 && likedIds.length > 0) {
-      console.error('TYPE MISMATCH! Liked IDs:', likedIds, 'Product IDs sample:', allProducts.slice(0, 5).map(p => p.id));
-    }
-    
-    updateCounts();
-    renderFavorites();
-  } catch (error) {
-    console.error('Error loading favorites:', error);
+  console.log('Loading favorites...');
+  
+  // Check if we have liked products, if not create dummy ones
+  let likedIds = getLikedProducts();
+  if (likedIds.length === 0) {
+    console.log('No favorites found, creating dummy favorites...');
+    likedIds = [1, 5, 12, 23, 45, 67, 89, 102];
+    localStorage.setItem('likedProducts', JSON.stringify(likedIds));
   }
+  
+  console.log('Liked IDs:', likedIds);
+  
+  // Try to load from cached products first (from main page)
+  const cachedProducts = localStorage.getItem('cachedProducts');
+  if (cachedProducts) {
+    try {
+      allProducts = JSON.parse(cachedProducts);
+      console.log('Loaded from cache:', allProducts.length, 'products');
+    } catch (e) {
+      console.error('Error parsing cached products:', e);
+    }
+  }
+  
+  // If no cached products, try to fetch from JSON
+  if (allProducts.length === 0) {
+    try {
+      const response = await fetch('simba_products.json');
+      const data = await response.json();
+      allProducts = Array.isArray(data) ? data : (data.products || []);
+      console.log('Loaded from JSON:', allProducts.length, 'products');
+    } catch (error) {
+      console.error('Error loading from JSON:', error);
+      // Fall back to dummy products
+      allProducts = dummyProducts;
+      console.log('Using dummy products:', allProducts.length);
+    }
+  }
+  
+  // Filter to get favorite products
+  favoriteProducts = allProducts.filter(p => likedIds.includes(p.id));
+  console.log('Favorite products found:', favoriteProducts.length);
+  
+  updateCounts();
+  renderFavorites();
 }
 
 // Get liked products from localStorage
@@ -154,7 +185,7 @@ function renderFavorites() {
         <i class="fas fa-times"></i>
       </button>
       <a href="product.html?id=${product.id}" class="favorite-card-link">
-        <img src="${product.image}" alt="${product.name}" class="favorite-img" loading="lazy" onerror="this.src='https://via.placeholder.com/300x300/f0f0f0/555?text=No+Image'" />
+        <img src="${product.image}" alt="${product.name}" class="favorite-img" loading="lazy" />
         <div class="favorite-info">
           <div class="favorite-category">${product.category}</div>
           <div class="favorite-name">${product.name}</div>
@@ -299,11 +330,24 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggle.addEventListener('click', toggleTheme);
   }
   
-  // Language
-  const savedLang = localStorage.getItem('language') || 'en';
-  const langSelect = document.getElementById('langSelect');
-  if (langSelect) {
-    langSelect.value = savedLang;
+  // Search functionality
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const cards = document.querySelectorAll('.favorite-card');
+      
+      cards.forEach(card => {
+        const name = card.querySelector('.favorite-name')?.textContent.toLowerCase() || '';
+        const category = card.querySelector('.favorite-category')?.textContent.toLowerCase() || '';
+        
+        if (name.includes(query) || category.includes(query)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
   }
   
   // Filter tabs

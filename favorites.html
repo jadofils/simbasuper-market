@@ -14,41 +14,32 @@
 <!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-inner">
-    <!-- LEFT: Logo & Category Menu -->
+    <!-- LEFT: Logo -->
     <div class="nav-left">
       <a href="index.html" class="logo">
         <i class="fas fa-shopping-bag logo-icon"></i>
         <span class="logo-text">Simba</span>
       </a>
-      <button class="categories-menu-btn" id="categoriesMenuBtn">
-        <i class="fas fa-bars"></i>
-        <span>Categories</span>
-      </button>
     </div>
 
     <!-- CENTER: Search Bar -->
     <div class="nav-center">
-      <div class="search-bar">
+      <h2 style="color: var(--text); margin: 0; margin-right: 2rem;"><i class="fas fa-heart"></i> My Favorites</h2>
+      <div class="search-bar" style="max-width: 400px;">
         <i class="fas fa-search search-icon"></i>
-        <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off" />
-        <button class="search-btn">
-          <i class="fas fa-search"></i>
-        </button>
+        <input type="text" id="searchInput" placeholder="Search favorites..." autocomplete="off" />
       </div>
     </div>
 
     <!-- RIGHT: Actions -->
     <div class="nav-right">
-      <a href="favorites.html" class="nav-icon-btn active" title="Favorites">
-        <i class="fas fa-heart"></i>
-        <span class="nav-badge" id="favoritesBadge">0</span>
+      <a href="index.html" class="btn-outline">
+        <i class="fas fa-home"></i> Home
       </a>
       
-      <select id="langSelect" class="lang-select">
-        <option value="en">🇬🇧 EN</option>
-        <option value="fr">🇫🇷 FR</option>
-        <option value="rw">🇷🇼 RW</option>
-      </select>
+      <a href="customer-dashboard.html" class="btn-outline">
+        <i class="fas fa-user"></i> Dashboard
+      </a>
       
       <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
         <i class="fas fa-moon"></i>
@@ -60,27 +51,6 @@
         <span class="cart-text">Cart</span>
       </a>
     </div>
-  </div>
-  
-  <!-- Mobile Bottom Nav -->
-  <div class="mobile-nav">
-    <a href="index.html" class="mobile-nav-item">
-      <i class="fas fa-home"></i>
-      <span>Home</span>
-    </a>
-    <button class="mobile-nav-item" id="mobileCategoriesBtn">
-      <i class="fas fa-th-large"></i>
-      <span>Categories</span>
-    </button>
-    <a href="favorites.html" class="mobile-nav-item active">
-      <i class="fas fa-heart"></i>
-      <span>Favorites</span>
-    </a>
-    <a href="cart.html" class="mobile-nav-item">
-      <i class="fas fa-shopping-cart"></i>
-      <span>Cart</span>
-      <span class="mobile-badge" id="mobileCartBadge">0</span>
-    </a>
   </div>
 </nav>
 

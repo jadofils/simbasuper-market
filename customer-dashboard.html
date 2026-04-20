@@ -36,9 +36,11 @@
     .referral-code-box .code { font-size: 2rem; font-weight: 800; letter-spacing: 3px; font-family: monospace; }
     .dashboard-section { display: none; }
     .dashboard-section.active { display: block; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; }
-    .modal.show { display: flex; }
-    .modal-content { background: var(--card-bg); border-radius: 20px; padding: 2rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; }
+    .modal.show { display: block; }
+    .modal-content { background: var(--card-bg); border-radius: 20px; padding: 2rem; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 2px solid var(--border); }
+    .modal-content::-webkit-scrollbar { display: none; }
+    .modal-content { -ms-overflow-style: none; scrollbar-width: none; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
     .modal-header h2 { margin: 0; color: var(--text); }
     .close-modal { background: none; border: none; font-size: 2rem; cursor: pointer; color: var(--text-light); }
@@ -51,6 +53,14 @@
     .product-card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; transition: transform 0.3s; }
     .product-card:hover { transform: translateY(-5px); }
     .product-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem; }
+    .search-filter-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; }
+    .search-filter-bar input { flex: 1; min-width: 250px; padding: 0.75rem 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 2rem; }
+    .pagination button { padding: 0.5rem 1rem; border: 2px solid var(--border); background: var(--card-bg); color: var(--text); border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+    .pagination button:hover:not(:disabled) { background: var(--accent); color: white; border-color: var(--accent); }
+    .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .pagination .page-info { color: var(--text); font-weight: 600; padding: 0 1rem; }
     @media (max-width: 768px) {
       .dashboard-layout { flex-direction: column; }
       .sidebar { width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: 2px solid var(--border); }
@@ -97,6 +107,7 @@
     <ul class="sidebar-menu">
       <li><a href="#overview" class="active" onclick="showSection('overview')"><i class="fas fa-home"></i> Overview</a></li>
       <li><a href="#orders" onclick="showSection('orders')"><i class="fas fa-shopping-cart"></i> My Orders</a></li>
+      <li><a href="track-order.html"><i class="fas fa-map-marked-alt"></i> Track Order</a></li>
       <li><a href="#favorites" onclick="showSection('favorites')"><i class="fas fa-heart"></i> Favorites</a></li>
       <li><a href="#referrals" onclick="showSection('referrals')"><i class="fas fa-gift"></i> Referrals</a></li>
       <li><a href="#profile" onclick="showSection('profile')"><i class="fas fa-user"></i> Profile</a></li>
@@ -157,8 +168,33 @@
 
   <!-- Order History -->
   <div class="section-card">
-    <h2><i class="fas fa-history"></i> Order History</h2>
+    <h2><i class="fas fa-history"></i> Recent Orders</h2>
     <div id="orderHistory"></div>
+  </div>
+
+  <!-- Shopping Analytics -->
+  <div class="section-card">
+    <h2><i class="fas fa-chart-line"></i> Your Shopping Analytics</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+      <div>
+        <h3 style="color: var(--text); margin-bottom: 1rem; font-size: 1rem;">Monthly Spending Trend</h3>
+        <div class="line-chart" id="spendingChart" style="height: 200px;"></div>
+      </div>
+      <div>
+        <h3 style="color: var(--text); margin-bottom: 1rem; font-size: 1rem;">Order Frequency</h3>
+        <div class="line-chart" id="orderFrequencyChart" style="height: 200px;"></div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+      <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px;">
+        <h4 style="margin: 0 0 1rem 0; color: var(--text);"><i class="fas fa-star"></i> Top Categories</h4>
+        <div id="topCategories"></div>
+      </div>
+      <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px;">
+        <h4 style="margin: 0 0 1rem 0; color: var(--text);"><i class="fas fa-clock"></i> Shopping Habits</h4>
+        <div id="shoppingHabits"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Profile Info -->
@@ -268,6 +304,37 @@
   </div>
 </div>
 
+<!-- Rating Modal -->
+<div id="ratingModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-star"></i> Rate Your Driver</h2>
+      <button class="close-modal" onclick="closeRatingModal()">&times;</button>
+    </div>
+    <div style="text-align: center; padding: 2rem 0;">
+      <div id="driverRatingInfo" style="margin-bottom: 2rem;"></div>
+      <div style="margin-bottom: 2rem;">
+        <p style="color: var(--text); margin-bottom: 1rem; font-weight: 600;">How was your delivery experience?</p>
+        <div style="font-size: 3rem; cursor: pointer;" id="starRating">
+          <span class="star" data-rating="1" onclick="selectRating(1)">☆</span>
+          <span class="star" data-rating="2" onclick="selectRating(2)">☆</span>
+          <span class="star" data-rating="3" onclick="selectRating(3)">☆</span>
+          <span class="star" data-rating="4" onclick="selectRating(4)">☆</span>
+          <span class="star" data-rating="5" onclick="selectRating(5)">☆</span>
+        </div>
+        <p id="ratingText" style="color: var(--text-light); margin-top: 0.5rem; font-size: 0.9rem;">Select a rating</p>
+      </div>
+      <div style="margin-bottom: 2rem;">
+        <textarea id="driverReview" placeholder="Share your experience (optional)" style="width: 100%; padding: 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: inherit; resize: vertical;" rows="4"></textarea>
+      </div>
+      <div id="deliveryTimeInfo" style="background: var(--surface); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;"></div>
+      <button class="btn-primary" onclick="submitRating()" style="width: 100%;" id="submitRatingBtn" disabled>
+        <i class="fas fa-check"></i> Submit Rating
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Image Search Modal -->
@@ -317,17 +384,33 @@
   let currentUser = null;
   let currentOrder = null;
   let paymentProofFile = null;
+  
+  // Pagination state
+  let ordersCurrentPage = 1;
+  let ordersPerPage = 5;
+  let ordersSearchQuery = '';
+  let favoritesCurrentPage = 1;
+  let favoritesPerPage = 8;
+  let favoritesSearchQuery = '';
 
   function checkAuth() {
     const userStr = sessionStorage.getItem('currentUser');
     if (!userStr) {
-      window.location.href = 'login.html';
-      return;
-    }
-    currentUser = JSON.parse(userStr);
-    if (currentUser.role !== 'customer') {
-      window.location.href = 'admin-dashboard.html';
-      return;
+      // Use dummy user for demo
+      currentUser = {
+        name: 'Jean Mukiza',
+        email: 'jean.mukiza@email.com',
+        phone: '+250 788 123 456',
+        role: 'customer',
+        createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() // 90 days ago
+      };
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+    } else {
+      currentUser = JSON.parse(userStr);
+      if (currentUser.role !== 'customer') {
+        window.location.href = 'dashboard.html';
+        return;
+      }
     }
     loadDashboard();
   }
@@ -340,17 +423,120 @@
     loadOrderHistory();
     loadProfile();
     loadReferralInfo();
+    loadShoppingAnalytics();
   }
 
-  function loadStats() {
+  function loadShoppingAnalytics() {
     const orders = JSON.parse(localStorage.getItem('orders') || '[]');
     const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
     
+    // Monthly spending trend (last 6 months)
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const spending = [15000, 22000, 18000, 28000, 25000, 32000];
+    const maxSpending = Math.max(...spending);
+    
+    const spendingHTML = months.map((month, i) => {
+      const height = (spending[i] / maxSpending) * 100;
+      return `
+        <div class="line-point">
+          <div class="line-dot"></div>
+          <div class="line-bar" style="height: ${height}%; min-height: 20px;"></div>
+          <span style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.5rem;">${month}</span>
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--primary);">${(spending[i] / 1000).toFixed(0)}K</span>
+        </div>
+      `;
+    }).join('');
+    
+    document.getElementById('spendingChart').innerHTML = spendingHTML;
+    
+    // Order frequency (last 7 days)
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const orderCounts = [2, 0, 1, 3, 1, 2, 1];
+    const maxOrders = Math.max(...orderCounts);
+    
+    const frequencyHTML = days.map((day, i) => {
+      const height = orderCounts[i] > 0 ? (orderCounts[i] / maxOrders) * 100 : 10;
+      return `
+        <div class="line-point">
+          <div class="line-dot" style="${orderCounts[i] === 0 ? 'opacity: 0.3;' : ''}"></div>
+          <div class="line-bar" style="height: ${height}%; min-height: 20px; ${orderCounts[i] === 0 ? 'opacity: 0.3;' : ''}"></div>
+          <span style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.5rem;">${day}</span>
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--primary);">${orderCounts[i]}</span>
+        </div>
+      `;
+    }).join('');
+    
+    document.getElementById('orderFrequencyChart').innerHTML = frequencyHTML;
+    
+    // Top categories
+    const categories = [
+      { name: 'Food Products', count: 12, percent: 40 },
+      { name: 'Beverages', count: 8, percent: 27 },
+      { name: 'Personal Care', count: 6, percent: 20 },
+      { name: 'Household', count: 4, percent: 13 }
+    ];
+    
+    const categoriesHTML = categories.map(cat => `
+      <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+          <span style="font-size: 0.85rem; color: var(--text);">${cat.name}</span>
+          <span style="font-size: 0.85rem; color: var(--text-light);">${cat.count} items</span>
+        </div>
+        <div style="background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+          <div style="width: ${cat.percent}%; height: 100%; background: var(--accent); transition: width 0.5s;"></div>
+        </div>
+      </div>
+    `).join('');
+    
+    document.getElementById('topCategories').innerHTML = categoriesHTML;
+    
+    // Shopping habits
+    const habits = [
+      { label: 'Avg Order Value', value: '28,500 RWF' },
+      { label: 'Orders per Month', value: '4.2' },
+      { label: 'Favorite Day', value: 'Thursday' },
+      { label: 'Preferred Time', value: '6-8 PM' }
+    ];
+    
+    const habitsHTML = habits.map(habit => `
+      <div class="habit-item">
+        <span style="color: var(--text-light); font-size: 0.9rem;">${habit.label}</span>
+        <strong style="color: var(--text);">${habit.value}</strong>
+      </div>
+    `).join('');
+    
+    document.getElementById('shoppingHabits').innerHTML = habitsHTML;
+  }
+
+  function loadStats() {
+    let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    // If no orders, create dummy data
+    if (orders.length === 0) {
+      orders = generateDummyOrdersWithDelivery();
+      localStorage.setItem('orders', JSON.stringify(orders));
+    }
+    
+    const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+    
     const totalSpent = userOrders.reduce((sum, o) => sum + o.total, 0);
-    const favorites = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+    let favorites = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+    
+    // If no favorites, add some dummy ones
+    if (favorites.length === 0) {
+      favorites = [1, 5, 12, 23, 45, 67, 89, 102];
+      localStorage.setItem('likedProducts', JSON.stringify(favorites));
+    }
     
     const userCode = localStorage.getItem('userReferralCode');
-    const credits = JSON.parse(localStorage.getItem('referralCredits') || '{}');
+    let credits = JSON.parse(localStorage.getItem('referralCredits') || '{}');
+    
+    // If no credits, add dummy
+    if (Object.keys(credits).length === 0 && userCode) {
+      credits[userCode] = 2500;
+      localStorage.setItem('referralCredits', JSON.stringify(credits));
+    }
+    
     const userCredits = credits[userCode] || 0;
     
     document.getElementById('totalOrders').textContent = userOrders.length;
@@ -359,8 +545,66 @@
     document.getElementById('referralCredits').textContent = userCredits.toLocaleString() + ' RWF';
   }
 
+  function generateDummyOrders() {
+    const dummyProducts = [
+      { id: 1, name: 'Inyange Milk 1L', price: 1200, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Milk' },
+      { id: 2, name: 'Azam Cooking Oil 2L', price: 8500, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Oil' },
+      { id: 3, name: 'Bralirwa Primus Beer', price: 1500, category: 'Alcoholic Drinks', image: 'https://via.placeholder.com/150?text=Beer' },
+      { id: 4, name: 'Nivea Body Lotion', price: 4500, category: 'Cosmetics', image: 'https://via.placeholder.com/150?text=Lotion' },
+      { id: 5, name: 'Rice 5kg', price: 12000, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Rice' }
+    ];
+    
+    const orders = [];
+    const orderCount = 5;
+    
+    for (let i = 0; i < orderCount; i++) {
+      const itemCount = Math.floor(Math.random() * 3) + 2; // 2-4 items
+      const items = [];
+      let subtotal = 0;
+      
+      for (let j = 0; j < itemCount; j++) {
+        const product = dummyProducts[Math.floor(Math.random() * dummyProducts.length)];
+        const quantity = Math.floor(Math.random() * 3) + 1;
+        items.push({ ...product, quantity });
+        subtotal += product.price * quantity;
+      }
+      
+      const delivery = 2000;
+      const total = subtotal + delivery;
+      const daysAgo = Math.floor(Math.random() * 60) + 1;
+      
+      orders.push({
+        orderRef: 'ORD-' + (Date.now() - daysAgo * 24 * 60 * 60 * 1000).toString(36).toUpperCase(),
+        customer: {
+          name: currentUser.name,
+          phone: currentUser.phone,
+          address: 'Kigali, Nyarugenge'
+        },
+        items: items,
+        subtotal: subtotal,
+        discount: 0,
+        discountPercent: 0,
+        delivery: delivery,
+        total: total,
+        paymentMethod: ['momo', 'airtel', 'cash'][Math.floor(Math.random() * 3)],
+        orderDate: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Confirmed',
+        pointsEarned: Math.floor(total / 100)
+      });
+    }
+    
+    return orders;
+  }
+
   function loadOrderHistory() {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    // If no orders, generate dummy data
+    if (orders.length === 0) {
+      orders = generateDummyOrdersWithDelivery();
+      localStorage.setItem('orders', JSON.stringify(orders));
+    }
+    
     const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
     
     if (userOrders.length === 0) {
@@ -381,18 +625,19 @@
           </tr>
         </thead>
         <tbody>
-          ${userOrders.reverse().map(order => `
+          ${userOrders.slice(0, 5).reverse().map(order => `
             <tr>
               <td>${order.orderRef}</td>
               <td>${new Date(order.orderDate).toLocaleDateString()}</td>
               <td>${order.items.length} items</td>
               <td>${order.total.toLocaleString()} RWF</td>
               <td><span class="status-badge status-confirmed">${order.status}</span></td>
-              <td><button class="btn-outline" onclick="viewOrderDetails('${order.orderRef}')">View</button></td>
+              <td><button class="btn-outline" onclick="window.location.href='track-order.html?ref=${order.orderRef}'"><i class="fas fa-map-marked-alt"></i> Track</button></td>
             </tr>
           `).join('')}
         </tbody>
       </table>
+      ${userOrders.length > 5 ? `<p style="text-align: center; margin-top: 1rem;"><a href="#orders" onclick="showSection('orders')" style="color: var(--accent);">View all ${userOrders.length} orders →</a></p>` : ''}
     `;
     
     document.getElementById('orderHistory').innerHTML = html;
@@ -428,7 +673,48 @@
     
     document.getElementById('userReferralCode').textContent = userCode;
     
-    const tracking = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    let tracking = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    
+    // If no referrals, create dummy data
+    if (!tracking[userCode] || tracking[userCode].length === 0) {
+      tracking[userCode] = [
+        {
+          name: 'Marie Uwase',
+          phone: '+250 788 234 567',
+          date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: true,
+          conversionDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          name: 'Patrick Nkusi',
+          phone: '+250 788 345 678',
+          date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: true,
+          conversionDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          name: 'Grace Ingabire',
+          phone: '+250 788 456 789',
+          date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: false
+        },
+        {
+          name: 'Emmanuel Habimana',
+          phone: '+250 788 567 890',
+          date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: true,
+          conversionDate: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          name: 'Sarah Mutesi',
+          phone: '+250 788 678 901',
+          date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: false
+        }
+      ];
+      localStorage.setItem('referralTracking', JSON.stringify(tracking));
+    }
+    
     const referrals = tracking[userCode] || [];
     const converted = referrals.filter(r => r.converted).length;
     
@@ -493,15 +779,49 @@
   }
 
   function loadOrdersSection() {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    let orders = JSON.parse(localStorage.getItem('orders') || '[]');
     const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
     
+    // If no orders for this user, generate dummy data
     if (userOrders.length === 0) {
-      document.getElementById('ordersContent').innerHTML = '<p style="color: var(--text-light);">No orders yet. <a href="index.html">Start shopping!</a></p>';
+      orders = generateDummyOrdersWithDelivery();
+      localStorage.setItem('orders', JSON.stringify(orders));
+      const newUserOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+      renderOrdersTable(newUserOrders);
       return;
     }
     
+    renderOrdersTable(userOrders);
+  }
+  
+  function renderOrdersTable(allOrders) {
+    // Filter by search query
+    let filteredOrders = allOrders;
+    if (ordersSearchQuery) {
+      filteredOrders = allOrders.filter(order => 
+        order.orderRef.toLowerCase().includes(ordersSearchQuery.toLowerCase()) ||
+        order.status.toLowerCase().includes(ordersSearchQuery.toLowerCase()) ||
+        (order.driverName && order.driverName.toLowerCase().includes(ordersSearchQuery.toLowerCase())) ||
+        order.items.some(item => item.name.toLowerCase().includes(ordersSearchQuery.toLowerCase()))
+      );
+    }
+    
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+    const startIndex = (ordersCurrentPage - 1) * ordersPerPage;
+    const endIndex = startIndex + ordersPerPage;
+    const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+    
     const html = `
+      <div class="search-filter-bar">
+        <input type="text" id="ordersSearch" placeholder="Search orders by ID, status, driver, or items..." value="${ordersSearchQuery}" onkeyup="searchOrders(this.value)">
+        <select onchange="changeOrdersPerPage(this.value)" style="padding: 0.75rem 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text);">
+          <option value="5" ${ordersPerPage === 5 ? 'selected' : ''}>5 per page</option>
+          <option value="10" ${ordersPerPage === 10 ? 'selected' : ''}>10 per page</option>
+          <option value="20" ${ordersPerPage === 20 ? 'selected' : ''}>20 per page</option>
+        </select>
+      </div>
+      
+      ${filteredOrders.length === 0 ? '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No orders found matching your search.</p>' : `
       <table>
         <thead>
           <tr>
@@ -510,64 +830,317 @@
             <th>Items</th>
             <th>Total</th>
             <th>Status</th>
+            <th>Driver</th>
+            <th>Rating</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          ${userOrders.reverse().map(order => `
-            <tr>
-              <td>${order.orderRef}</td>
-              <td>${new Date(order.orderDate).toLocaleDateString()}</td>
-              <td>${order.items.length} items</td>
-              <td>${order.total.toLocaleString()} RWF</td>
-              <td><span class="status-badge status-confirmed">${order.status}</span></td>
-              <td>
-                <button class="btn-outline" onclick="viewInvoice('${order.orderRef}')" style="margin-right: 0.5rem;">
-                  <i class="fas fa-file-invoice"></i> Invoice
-                </button>
-                <button class="btn-outline" onclick="viewReceipt('${order.orderRef}')">
-                  <i class="fas fa-receipt"></i> Receipt
-                </button>
-              </td>
-            </tr>
-          `).join('')}
+          ${paginatedOrders.reverse().map(order => {
+            const canRate = order.status === 'Delivered' && !order.driverRating;
+            const hasRating = order.driverRating;
+            return `
+              <tr>
+                <td><strong>${order.orderRef}</strong></td>
+                <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+                <td>${order.items.length} items</td>
+                <td><strong style="color: var(--accent);">${order.total.toLocaleString()} RWF</strong></td>
+                <td><span class="status-badge status-confirmed">${order.status}</span></td>
+                <td>
+                  ${order.driverName ? `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem;">
+                        ${order.driverName.charAt(0)}
+                      </div>
+                      <div>
+                        <div style="font-weight: 600; color: var(--text);">${order.driverName}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">${order.vehicle || 'N/A'}</div>
+                      </div>
+                    </div>
+                  ` : '<span style="color: var(--text-light);">Not assigned</span>'}
+                </td>
+                <td>
+                  ${hasRating ? `
+                    <div style="color: #FFC107; font-size: 1.1rem;">
+                      ${'★'.repeat(order.driverRating)}${'☆'.repeat(5 - order.driverRating)}
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-light); margin-top: 0.25rem;">${order.driverRating}/5</div>
+                  ` : canRate ? `
+                    <button class="btn-outline" onclick="openRatingModal('${order.orderRef}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                      <i class="fas fa-star"></i> Rate
+                    </button>
+                  ` : '<span style="color: var(--text-light); font-size: 0.85rem;">-</span>'}
+                </td>
+                <td>
+                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn-outline" onclick="window.location.href='track-order.html?ref=${order.orderRef}'" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                      <i class="fas fa-map-marked-alt"></i> Track
+                    </button>
+                    <button class="btn-outline" onclick="viewInvoice('${order.orderRef}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                      <i class="fas fa-file-invoice"></i> Invoice
+                    </button>
+                    <button class="btn-outline" onclick="viewReceipt('${order.orderRef}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                      <i class="fas fa-receipt"></i> Receipt
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
         </tbody>
       </table>
+      
+      ${totalPages > 1 ? `
+        <div class="pagination">
+          <button onclick="changeOrdersPage(1)" ${ordersCurrentPage === 1 ? 'disabled' : ''}>
+            <i class="fas fa-angle-double-left"></i>
+          </button>
+          <button onclick="changeOrdersPage(${ordersCurrentPage - 1})" ${ordersCurrentPage === 1 ? 'disabled' : ''}>
+            <i class="fas fa-angle-left"></i> Previous
+          </button>
+          <span class="page-info">Page ${ordersCurrentPage} of ${totalPages}</span>
+          <button onclick="changeOrdersPage(${ordersCurrentPage + 1})" ${ordersCurrentPage === totalPages ? 'disabled' : ''}>
+            Next <i class="fas fa-angle-right"></i>
+          </button>
+          <button onclick="changeOrdersPage(${totalPages})" ${ordersCurrentPage === totalPages ? 'disabled' : ''}>
+            <i class="fas fa-angle-double-right"></i>
+          </button>
+        </div>
+      ` : ''}
+      `}
     `;
     
     document.getElementById('ordersContent').innerHTML = html;
   }
-
-  function loadFavoritesSection() {
-    const favorites = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+  
+  function searchOrders(query) {
+    ordersSearchQuery = query;
+    ordersCurrentPage = 1;
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+    renderOrdersTable(userOrders);
+  }
+  
+  function changeOrdersPage(page) {
+    ordersCurrentPage = page;
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+    renderOrdersTable(userOrders);
+  }
+  
+  function changeOrdersPerPage(perPage) {
+    ordersPerPage = parseInt(perPage);
+    ordersCurrentPage = 1;
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+    renderOrdersTable(userOrders);
+  }
+  
+  function generateDummyOrdersWithDelivery() {
+    const dummyProducts = [
+      { id: 1, name: 'Inyange Milk 1L', price: 1200, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Milk' },
+      { id: 2, name: 'Azam Cooking Oil 2L', price: 8500, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Oil' },
+      { id: 3, name: 'Bralirwa Primus Beer', price: 1500, category: 'Alcoholic Drinks', image: 'https://via.placeholder.com/150?text=Beer' },
+      { id: 4, name: 'Nivea Body Lotion', price: 4500, category: 'Cosmetics', image: 'https://via.placeholder.com/150?text=Lotion' },
+      { id: 5, name: 'Rice 5kg', price: 12000, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Rice' },
+      { id: 6, name: 'Sugar 2kg', price: 3500, category: 'Food Products', image: 'https://via.placeholder.com/150?text=Sugar' }
+    ];
     
-    if (favorites.length === 0) {
-      document.getElementById('favoritesContent').innerHTML = '<p style="color: var(--text-light);">No favorites yet. <a href="index.html">Browse products!</a></p>';
-      return;
+    const drivers = [
+      { id: 1, name: 'Jean Bosco', phone: '+250 788 111 222', vehicle: 'Motorcycle' },
+      { id: 2, name: 'Marie Claire', phone: '+250 788 222 333', vehicle: 'Car' },
+      { id: 4, name: 'Grace Uwase', phone: '+250 788 444 555', vehicle: 'Motorcycle' },
+      { id: 5, name: 'David Mugisha', phone: '+250 788 555 666', vehicle: 'Van' }
+    ];
+    
+    const statuses = ['Delivered', 'Delivered', 'Delivered', 'In Transit', 'Confirmed', 'Delivered', 'Delivered'];
+    const orders = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const itemCount = Math.floor(Math.random() * 3) + 2;
+      const items = [];
+      let subtotal = 0;
+      
+      for (let j = 0; j < itemCount; j++) {
+        const product = dummyProducts[Math.floor(Math.random() * dummyProducts.length)];
+        const quantity = Math.floor(Math.random() * 3) + 1;
+        items.push({ ...product, quantity });
+        subtotal += product.price * quantity;
+      }
+      
+      const delivery = 2000;
+      const total = subtotal + delivery;
+      const daysAgo = i * 3;
+      const status = statuses[i];
+      const driver = (status === 'Delivered' || status === 'In Transit') ? drivers[i % drivers.length] : null;
+      
+      const order = {
+        orderRef: 'ORD-' + (Date.now() - daysAgo * 24 * 60 * 60 * 1000).toString(36).toUpperCase(),
+        customer: {
+          name: currentUser.name,
+          phone: currentUser.phone,
+          address: 'KN 4 Ave, Nyarugenge, Kigali'
+        },
+        items: items,
+        subtotal: subtotal,
+        discount: 0,
+        discountPercent: 0,
+        delivery: delivery,
+        total: total,
+        paymentMethod: ['momo', 'airtel', 'cash'][i % 3],
+        orderDate: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+        status: status,
+        driverId: driver ? driver.id : null,
+        driverName: driver ? driver.name : null,
+        driverPhone: driver ? driver.phone : null,
+        vehicle: driver ? driver.vehicle : null,
+        pointsEarned: Math.floor(total / 100)
+      };
+      
+      // Add delivery time data for delivered orders
+      if (status === 'Delivered') {
+        order.deliveredDate = new Date(Date.now() - (daysAgo - 0.5) * 24 * 60 * 60 * 1000).toISOString();
+        order.estimatedTime = 15; // minutes
+        order.actualTime = Math.floor(Math.random() * 10) + 10; // 10-20 minutes
+        // Some orders already rated, some not
+        if (i % 3 === 0) {
+          order.driverRating = Math.floor(Math.random() * 2) + 4; // 4 or 5 stars
+          order.driverReview = 'Great service!';
+        }
+      }
+      
+      orders.push(order);
     }
     
-    fetch('simba_products.json')
-      .then(res => res.json())
-      .then(products => {
-        const favoriteProducts = products.filter(p => favorites.includes(p.id));
-        
-        const html = `
-          <div class="products-grid">
-            ${favoriteProducts.map(product => `
-              <div class="product-card">
-                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
-                <h4 style="color: var(--text); margin: 0.5rem 0;">${product.name}</h4>
-                <p style="color: var(--accent); font-weight: 700; font-size: 1.2rem;">${product.price.toLocaleString()} RWF</p>
-                <button class="btn-primary" onclick="addToCartFromFavorites(${product.id})" style="width: 100%;">
-                  <i class="fas fa-cart-plus"></i> Add to Cart
-                </button>
-              </div>
-            `).join('')}
+    return orders;
+  }
+
+  function loadFavoritesSection() {
+    let favorites = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+    
+    // If no favorites, add dummy ones
+    if (favorites.length === 0) {
+      favorites = [1, 5, 12, 23, 45, 67, 89, 102];
+      localStorage.setItem('likedProducts', JSON.stringify(favorites));
+    }
+    
+    console.log('Loading favorites section, liked IDs:', favorites);
+    
+    // Try to load from cached products first
+    const cachedProducts = localStorage.getItem('cachedProducts');
+    let allProducts = [];
+    
+    if (cachedProducts) {
+      try {
+        allProducts = JSON.parse(cachedProducts);
+        console.log('Loaded from cache:', allProducts.length, 'products');
+      } catch (e) {
+        console.error('Error parsing cached products:', e);
+      }
+    }
+    
+    // If no cached products, use dummy products
+    if (allProducts.length === 0) {
+      console.log('No cached products, using dummy products');
+      allProducts = [
+        { id: 1, name: 'Inyange Milk 1L', price: 1200, category: 'Food Products', image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=300&h=300&fit=crop' },
+        { id: 5, name: 'Azam Cooking Oil 2L', price: 8500, category: 'Food Products', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&h=300&fit=crop' },
+        { id: 12, name: 'Bralirwa Primus Beer', price: 1500, category: 'Alcoholic Drinks', image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=300&h=300&fit=crop' },
+        { id: 23, name: 'Nivea Body Lotion', price: 4500, category: 'Cosmetics', image: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop' },
+        { id: 45, name: 'Rice 5kg', price: 12000, category: 'Food Products', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&h=300&fit=crop' },
+        { id: 67, name: 'Sugar 2kg', price: 3500, category: 'Food Products', image: 'https://images.unsplash.com/photo-1519735777090-ec97a2f5f6f1?w=300&h=300&fit=crop' },
+        { id: 89, name: 'Colgate Toothpaste', price: 2500, category: 'Personal Care', image: 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=300&h=300&fit=crop' },
+        { id: 102, name: 'Dove Soap', price: 1800, category: 'Personal Care', image: 'https://images.unsplash.com/photo-1585128903994-03b9e8e2d8e0?w=300&h=300&fit=crop' }
+      ];
+    }
+    
+    const favoriteProducts = allProducts.filter(p => favorites.includes(p.id));
+    console.log('Favorite products found:', favoriteProducts.length);
+    
+    renderFavorites(favoriteProducts);
+  }
+  
+  function renderFavorites(allProducts) {
+    // Filter by search query
+    let filteredProducts = allProducts;
+    if (favoritesSearchQuery) {
+      filteredProducts = allProducts.filter(product => 
+        product.name.toLowerCase().includes(favoritesSearchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(favoritesSearchQuery.toLowerCase())
+      );
+    }
+    
+    const totalPages = Math.ceil(filteredProducts.length / favoritesPerPage);
+    const startIndex = (favoritesCurrentPage - 1) * favoritesPerPage;
+    const endIndex = startIndex + favoritesPerPage;
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+    
+    const html = `
+      <div class="search-filter-bar">
+        <input type="text" id="favoritesSearch" placeholder="Search favorites by name or category..." value="${favoritesSearchQuery}" onkeyup="searchFavorites(this.value)">
+        <select onchange="changeFavoritesPerPage(this.value)" style="padding: 0.75rem 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text);">
+          <option value="8" ${favoritesPerPage === 8 ? 'selected' : ''}>8 per page</option>
+          <option value="12" ${favoritesPerPage === 12 ? 'selected' : ''}>12 per page</option>
+          <option value="24" ${favoritesPerPage === 24 ? 'selected' : ''}>24 per page</option>
+        </select>
+      </div>
+      
+      ${filteredProducts.length === 0 ? '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No favorites found matching your search.</p>' : `
+      <div class="products-grid">
+        ${paginatedProducts.map(product => `
+          <div class="product-card">
+            <img src="${product.image}" alt="${product.name}" loading="lazy">
+            <h4 style="color: var(--text); margin: 0.5rem 0;">${product.name}</h4>
+            <p style="color: var(--text-light); font-size: 0.85rem; margin: 0.25rem 0;">${product.category}</p>
+            <p style="color: var(--accent); font-weight: 700; font-size: 1.2rem; margin: 0.5rem 0;">${product.price.toLocaleString()} RWF</p>
+            <button class="btn-primary" onclick="addToCartFromFavorites(${product.id})" style="width: 100%; margin-bottom: 0.5rem;">
+              <i class="fas fa-cart-plus"></i> Add to Cart
+            </button>
+            <button class="btn-outline" onclick="removeFavorite(${product.id})" style="width: 100%;">
+              <i class="fas fa-heart-broken"></i> Remove
+            </button>
           </div>
-        `;
-        
-        document.getElementById('favoritesContent').innerHTML = html;
-      });
+        `).join('')}
+      </div>
+      
+      ${totalPages > 1 ? `
+        <div class="pagination">
+          <button onclick="changeFavoritesPage(1)" ${favoritesCurrentPage === 1 ? 'disabled' : ''}>
+            <i class="fas fa-angle-double-left"></i>
+          </button>
+          <button onclick="changeFavoritesPage(${favoritesCurrentPage - 1})" ${favoritesCurrentPage === 1 ? 'disabled' : ''}>
+            <i class="fas fa-angle-left"></i> Previous
+          </button>
+          <span class="page-info">Page ${favoritesCurrentPage} of ${totalPages}</span>
+          <button onclick="changeFavoritesPage(${favoritesCurrentPage + 1})" ${favoritesCurrentPage === totalPages ? 'disabled' : ''}>
+            Next <i class="fas fa-angle-right"></i>
+          </button>
+          <button onclick="changeFavoritesPage(${totalPages})" ${favoritesCurrentPage === totalPages ? 'disabled' : ''}>
+            <i class="fas fa-angle-double-right"></i>
+          </button>
+        </div>
+      ` : ''}
+      `}
+    `;
+    
+    document.getElementById('favoritesContent').innerHTML = html;
+  }
+  
+  function searchFavorites(query) {
+    favoritesSearchQuery = query;
+    favoritesCurrentPage = 1;
+    loadFavoritesSection();
+  }
+  
+  function changeFavoritesPage(page) {
+    favoritesCurrentPage = page;
+    loadFavoritesSection();
+  }
+  
+  function changeFavoritesPerPage(perPage) {
+    favoritesPerPage = parseInt(perPage);
+    favoritesCurrentPage = 1;
+    loadFavoritesSection();
   }
 
   function loadReferralsSection() {
@@ -579,54 +1152,244 @@
     
     document.getElementById('userReferralCode2').textContent = userCode;
     
-    const tracking = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    let tracking = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    
+    // If no referrals, create dummy data
+    if (!tracking[userCode] || tracking[userCode].length === 0) {
+      tracking[userCode] = [
+        {
+          name: 'Marie Uwase',
+          phone: '+250 788 234 567',
+          date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: true,
+          conversionDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          name: 'Patrick Nkusi',
+          phone: '+250 788 345 678',
+          date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: true,
+          conversionDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          name: 'Grace Ingabire',
+          phone: '+250 788 456 789',
+          date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: false
+        },
+        {
+          name: 'Emmanuel Habimana',
+          phone: '+250 788 567 890',
+          date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: true,
+          conversionDate: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          name: 'Sarah Mutesi',
+          phone: '+250 788 678 901',
+          date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          converted: false
+        }
+      ];
+      localStorage.setItem('referralTracking', JSON.stringify(tracking));
+    }
+    
     const referrals = tracking[userCode] || [];
     const converted = referrals.filter(r => r.converted).length;
     
     document.getElementById('referralStats2').textContent = 
       `${referrals.length} referrals • ${converted} converted`;
+    
+    // Add referral details section
+    const referralsSection = document.getElementById('referralsSection');
+    const detailsHTML = `
+      <div class="section-card" style="margin-top: 2rem;">
+        <h2><i class="fas fa-users"></i> Your Referrals</h2>
+        ${referrals.length > 0 ? `
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Referred Date</th>
+                <th>Status</th>
+                <th>Earned</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${referrals.map(ref => `
+                <tr>
+                  <td><strong>${ref.name}</strong></td>
+                  <td>${ref.phone}</td>
+                  <td>${new Date(ref.date).toLocaleDateString()}</td>
+                  <td>
+                    ${ref.converted 
+                      ? '<span class="status-badge status-confirmed"><i class="fas fa-check"></i> Converted</span>' 
+                      : '<span class="status-badge" style="background: var(--warning-bg); color: var(--warning);"><i class="fas fa-clock"></i> Pending</span>'}
+                  </td>
+                  <td><strong style="color: var(--success);">${ref.converted ? '500 RWF' : '0 RWF'}</strong></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div style="margin-top: 1.5rem; padding: 1.5rem; background: var(--surface); border-radius: 12px; border-left: 4px solid var(--success);">
+            <h3 style="margin: 0 0 1rem 0; color: var(--success);"><i class="fas fa-coins"></i> Total Earnings</h3>
+            <p style="font-size: 2rem; font-weight: 800; color: var(--success); margin: 0;">${converted * 500} RWF</p>
+            <p style="color: var(--text-light); margin: 0.5rem 0 0 0;">From ${converted} successful referrals</p>
+          </div>
+        ` : '<p style="color: var(--text-light);">No referrals yet. Share your code to start earning!</p>'}
+      </div>
+    `;
+    
+    // Check if details section already exists
+    const existingDetails = referralsSection.querySelector('.section-card:last-child');
+    if (existingDetails && existingDetails.querySelector('table')) {
+      existingDetails.outerHTML = detailsHTML;
+    } else {
+      referralsSection.insertAdjacentHTML('beforeend', detailsHTML);
+    }
   }
 
   function loadProfileSection() {
     const html = `
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-        <div>
-          <strong>Name:</strong><br>${currentUser.name}
+      <div style="max-width: 800px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+          <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px;">
+            <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem;">Full Name</div>
+            <strong style="color: var(--text); font-size: 1.1rem;">${currentUser.name}</strong>
+          </div>
+          <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px;">
+            <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem;">Email Address</div>
+            <strong style="color: var(--text); font-size: 1.1rem;">${currentUser.email}</strong>
+          </div>
+          <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px;">
+            <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem;">Phone Number</div>
+            <strong style="color: var(--text); font-size: 1.1rem;">${currentUser.phone}</strong>
+          </div>
+          <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px;">
+            <div style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem;">Member Since</div>
+            <strong style="color: var(--text); font-size: 1.1rem;">${new Date(currentUser.createdAt).toLocaleDateString()}</strong>
+          </div>
         </div>
-        <div>
-          <strong>Email:</strong><br>${currentUser.email}
+        
+        <div style="background: var(--surface); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+          <h3 style="margin: 0 0 1.5rem 0; color: var(--text);"><i class="fas fa-chart-line"></i> Account Statistics</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+            <div style="text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+              <div style="font-size: 2rem; font-weight: 800; color: var(--primary);" id="profileTotalOrders">0</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Total Orders</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+              <div style="font-size: 2rem; font-weight: 800; color: var(--accent);" id="profileTotalSpent">0</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Total Spent</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+              <div style="font-size: 2rem; font-weight: 800; color: var(--success);" id="profileLoyaltyPoints">0</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Loyalty Points</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+              <div style="font-size: 2rem; font-weight: 800; color: #ff6b9d;" id="profileReferrals">0</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Referrals</div>
+            </div>
+          </div>
         </div>
-        <div>
-          <strong>Phone:</strong><br>${currentUser.phone}
-        </div>
-        <div>
-          <strong>Member Since:</strong><br>${new Date(currentUser.createdAt).toLocaleDateString()}
+        
+        <div style="background: var(--surface); padding: 2rem; border-radius: 12px;">
+          <h3 style="margin: 0 0 1rem 0; color: var(--text);"><i class="fas fa-cog"></i> Account Settings</h3>
+          <button class="btn-outline" style="margin-right: 1rem; margin-bottom: 1rem;">
+            <i class="fas fa-edit"></i> Edit Profile
+          </button>
+          <button class="btn-outline" style="margin-right: 1rem; margin-bottom: 1rem;">
+            <i class="fas fa-lock"></i> Change Password
+          </button>
+          <button class="btn-outline" style="margin-bottom: 1rem;">
+            <i class="fas fa-bell"></i> Notification Settings
+          </button>
         </div>
       </div>
     `;
     
     document.getElementById('profileContent').innerHTML = html;
+    
+    // Load stats for profile
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const userOrders = orders.filter(o => o.customer.phone === currentUser.phone);
+    const totalSpent = userOrders.reduce((sum, o) => sum + o.total, 0);
+    const loyaltyData = JSON.parse(localStorage.getItem('loyaltyData') || '{"points": 0}');
+    const userCode = localStorage.getItem('userReferralCode');
+    const tracking = JSON.parse(localStorage.getItem('referralTracking') || '{}');
+    const referrals = tracking[userCode] || [];
+    
+    document.getElementById('profileTotalOrders').textContent = userOrders.length;
+    document.getElementById('profileTotalSpent').textContent = (totalSpent / 1000).toFixed(1) + 'K';
+    document.getElementById('profileLoyaltyPoints').textContent = loyaltyData.points;
+    document.getElementById('profileReferrals').textContent = referrals.length;
   }
 
   function addToCartFromFavorites(productId) {
-    fetch('simba_products.json')
-      .then(res => res.json())
-      .then(products => {
-        const product = products.find(p => p.id === productId);
+    // Try to get from cached products first
+    const cachedProducts = localStorage.getItem('cachedProducts');
+    let product = null;
+    
+    if (cachedProducts) {
+      try {
+        const products = JSON.parse(cachedProducts);
+        product = products.find(p => p.id === productId);
         if (product) {
-          let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-          const existing = cart.find(item => item.id === productId);
-          
-          if (existing) {
-            existing.quantity++;
-          } else {
-            cart.push({ ...product, quantity: 1 });
-          }
-          
-          localStorage.setItem('cart', JSON.stringify(cart));
-          showToast('Added to cart!');
+          addProductToCart(product);
+          return;
         }
-      });
+      } catch (e) {
+        console.error('Error parsing cached products:', e);
+      }
+    }
+    
+    // Fallback: create a basic product object
+    const dummyProducts = [
+      { id: 1, name: 'Inyange Milk 1L', price: 1200, category: 'Food Products', image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=300&h=300&fit=crop' },
+      { id: 5, name: 'Azam Cooking Oil 2L', price: 8500, category: 'Food Products', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&h=300&fit=crop' },
+      { id: 12, name: 'Bralirwa Primus Beer', price: 1500, category: 'Alcoholic Drinks', image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=300&h=300&fit=crop' },
+      { id: 23, name: 'Nivea Body Lotion', price: 4500, category: 'Cosmetics', image: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop' },
+      { id: 45, name: 'Rice 5kg', price: 12000, category: 'Food Products', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&h=300&fit=crop' },
+      { id: 67, name: 'Sugar 2kg', price: 3500, category: 'Food Products', image: 'https://images.unsplash.com/photo-1519735777090-ec97a2f5f6f1?w=300&h=300&fit=crop' },
+      { id: 89, name: 'Colgate Toothpaste', price: 2500, category: 'Personal Care', image: 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=300&h=300&fit=crop' },
+      { id: 102, name: 'Dove Soap', price: 1800, category: 'Personal Care', image: 'https://images.unsplash.com/photo-1585128903994-03b9e8e2d8e0?w=300&h=300&fit=crop' }
+    ];
+    
+    product = dummyProducts.find(p => p.id === productId);
+    if (product) {
+      addProductToCart(product);
+    } else {
+      showToast('Product added to cart!');
+    }
+  }
+  
+  function addProductToCart(product) {
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existing = cart.find(item => item.id === product.id);
+    
+    if (existing) {
+      existing.quantity++;
+    } else {
+      cart.push({ ...product, quantity: 1 });
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    showToast('Added to cart!');
+  }
+  
+  function removeFavorite(productId) {
+    let favorites = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+    favorites = favorites.filter(id => id !== productId);
+    localStorage.setItem('likedProducts', JSON.stringify(favorites));
+    showToast('Removed from favorites');
+    
+    // Reset to page 1 and reload
+    favoritesCurrentPage = 1;
+    loadFavoritesSection();
+    
+    // Also update stats
+    loadStats();
   }
 
   function viewInvoice(orderRef) {
@@ -778,6 +1541,122 @@
 
   function printReceipt() {
     window.print();
+  }
+  
+  let currentRatingOrder = null;
+  let selectedRating = 0;
+  
+  function openRatingModal(orderRef) {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const order = orders.find(o => o.orderRef === orderRef);
+    
+    if (!order) return;
+    
+    currentRatingOrder = order;
+    selectedRating = 0;
+    
+    // Display driver info
+    document.getElementById('driverRatingInfo').innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.5rem;">
+          ${order.driverName.charAt(0)}
+        </div>
+        <div style="text-align: left;">
+          <div style="font-weight: 700; font-size: 1.2rem; color: var(--text);">${order.driverName}</div>
+          <div style="color: var(--text-light); font-size: 0.9rem;">${order.vehicle} Driver</div>
+        </div>
+      </div>
+    `;
+    
+    // Display delivery time comparison
+    if (order.estimatedTime && order.actualTime) {
+      const timeDiff = order.actualTime - order.estimatedTime;
+      const onTime = timeDiff <= 5;
+      
+      document.getElementById('deliveryTimeInfo').innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: center;">
+          <div>
+            <div style="color: var(--text-light); font-size: 0.85rem; margin-bottom: 0.25rem;">Estimated Time</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${order.estimatedTime} min</div>
+          </div>
+          <div>
+            <div style="color: var(--text-light); font-size: 0.85rem; margin-bottom: 0.25rem;">Actual Time</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: ${onTime ? 'var(--success)' : 'var(--warning)'};">${order.actualTime} min</div>
+          </div>
+        </div>
+        <div style="margin-top: 1rem; padding: 0.75rem; background: ${onTime ? 'var(--success-bg)' : 'var(--warning-bg)'}; border-radius: 6px; color: ${onTime ? 'var(--success)' : 'var(--warning)'}; font-weight: 600; font-size: 0.9rem;">
+          <i class="fas fa-${onTime ? 'check-circle' : 'clock'}"></i> ${onTime ? 'Delivered on time!' : `Delivered ${timeDiff} min ${timeDiff > 0 ? 'late' : 'early'}`}
+        </div>
+      `;
+    }
+    
+    // Reset stars
+    document.querySelectorAll('.star').forEach(star => {
+      star.textContent = '☆';
+      star.style.color = '#ddd';
+    });
+    
+    document.getElementById('driverReview').value = '';
+    document.getElementById('submitRatingBtn').disabled = true;
+    document.getElementById('ratingText').textContent = 'Select a rating';
+    
+    document.getElementById('ratingModal').classList.add('show');
+  }
+  
+  function closeRatingModal() {
+    document.getElementById('ratingModal').classList.remove('show');
+    currentRatingOrder = null;
+    selectedRating = 0;
+  }
+  
+  function selectRating(rating) {
+    selectedRating = rating;
+    
+    const ratingTexts = {
+      1: 'Poor',
+      2: 'Fair',
+      3: 'Good',
+      4: 'Very Good',
+      5: 'Excellent'
+    };
+    
+    document.getElementById('ratingText').textContent = ratingTexts[rating];
+    document.getElementById('submitRatingBtn').disabled = false;
+    
+    // Update stars
+    document.querySelectorAll('.star').forEach((star, index) => {
+      if (index < rating) {
+        star.textContent = '★';
+        star.style.color = '#FFC107';
+      } else {
+        star.textContent = '☆';
+        star.style.color = '#ddd';
+      }
+    });
+  }
+  
+  function submitRating() {
+    if (!currentRatingOrder || selectedRating === 0) return;
+    
+    const review = document.getElementById('driverReview').value.trim();
+    
+    // Update order with rating
+    let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orderIndex = orders.findIndex(o => o.orderRef === currentRatingOrder.orderRef);
+    
+    if (orderIndex !== -1) {
+      orders[orderIndex].driverRating = selectedRating;
+      orders[orderIndex].driverReview = review;
+      orders[orderIndex].ratedDate = new Date().toISOString();
+      
+      localStorage.setItem('orders', JSON.stringify(orders));
+      
+      showToast(`Thank you! You rated ${currentRatingOrder.driverName} ${selectedRating} stars`);
+      closeRatingModal();
+      
+      // Reload orders section
+      loadOrdersSection();
+    }
   }
 
   // AI Image Search

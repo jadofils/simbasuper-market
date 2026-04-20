@@ -88,6 +88,7 @@
       <li><a href="#analytics" onclick="showSection('analytics')"><i class="fas fa-chart-bar"></i> Analytics</a></li>
       <li><a href="#customers" onclick="showSection('customers')"><i class="fas fa-users"></i> Customers</a></li>
       <li><a href="#orders" onclick="showSection('orders')"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+      <li><a href="delivery-management.html"><i class="fas fa-truck"></i> Delivery</a></li>
       <li><a href="#products" onclick="showSection('products')"><i class="fas fa-box"></i> Products</a></li>
       <li><a href="#marketing" onclick="showSection('marketing')"><i class="fas fa-bullhorn"></i> Marketing</a></li>
       <li><a href="#reports" onclick="showSection('reports')"><i class="fas fa-file-alt"></i> Reports</a></li>
@@ -96,75 +97,46 @@
     </ul>
   </aside>
   
-  <div class="dashboard-content">
-<div class="dashboard">
-  <h1><i class="fas fa-chart-line"></i> Analytics Dashboard</h1>
-  
-  <div class="btn-group">
-    <button class="btn-primary" onclick="refreshData()">
-      <i class="fas fa-sync"></i> Refresh Data
-    </button>
-    <button class="btn-outline" onclick="exportData()">
-      <i class="fas fa-download"></i> Export All Data
-    </button>
-    <button class="btn-outline" onclick="generateReport()">
-      <i class="fas fa-file-pdf"></i> Generate Report
-    </button>
-    <button class="btn-outline" onclick="clearAllData()">
-      <i class="fas fa-trash"></i> Clear All Data
-    </button>
-  </div>
+  <div class="dashboard-content" id="mainContent">
+    <div class="dashboard">
+      <h1><i class="fas fa-chart-line"></i> Overview Dashboard</h1>
+      
+      <div class="btn-group">
+        <button class="btn-primary" onclick="refreshData()">
+          <i class="fas fa-sync"></i> Refresh Data
+        </button>
+        <button class="btn-outline" onclick="exportData()">
+          <i class="fas fa-download"></i> Export All Data
+        </button>
+        <button class="btn-outline" onclick="generateReport()">
+          <i class="fas fa-file-pdf"></i> Generate Report
+        </button>
+      </div>
 
-  <!-- Stats Cards -->
-  <div class="stats-grid" id="statsGrid"></div>
+      <div class="stats-grid" id="statsGrid"></div>
 
-  <!-- Charts Section -->
-  <div class="chart-container">
-    <h2><i class="fas fa-chart-bar"></i> Monthly Revenue Trend</h2>
-    <div class="bar-chart" id="revenueChart"></div>
-  </div>
+      <div class="chart-container">
+        <h2><i class="fas fa-chart-bar"></i> Monthly Revenue Trend</h2>
+        <div class="bar-chart" id="revenueChart"></div>
+      </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-    <div class="chart-container">
-      <h2><i class="fas fa-chart-line"></i> Daily Orders (Last 7 Days)</h2>
-      <div class="line-chart" id="ordersChart"></div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+        <div class="chart-container">
+          <h2><i class="fas fa-chart-line"></i> Daily Orders (Last 7 Days)</h2>
+          <div class="line-chart" id="ordersChart"></div>
+        </div>
+        
+        <div class="chart-container">
+          <h2><i class="fas fa-chart-pie"></i> Top Categories</h2>
+          <div id="categoryChart"></div>
+        </div>
+      </div>
     </div>
-    
-    <div class="chart-container">
-      <h2><i class="fas fa-chart-pie"></i> Top Categories</h2>
-      <div id="categoryChart"></div>
-    </div>
-  </div>
-
-  <!-- Customer Database -->
-  <div class="data-section">
-    <h2><i class="fas fa-users"></i> Customer Database</h2>
-    <div id="customerTable"></div>
-  </div>
-
-  <!-- Orders -->
-  <div class="data-section">
-    <h2><i class="fas fa-shopping-cart"></i> Recent Orders</h2>
-    <div id="ordersTable"></div>
-  </div>
-
-  <!-- Social Shares -->
-  <div class="data-section">
-    <h2><i class="fas fa-share-alt"></i> Social Media Shares</h2>
-    <div id="sharesTable"></div>
-  </div>
-
-  <!-- Referrals -->
-  <div class="data-section">
-    <h2><i class="fas fa-gift"></i> Referral Tracking</h2>
-    <div id="referralsTable"></div>
-  </div>
-</div>
   </div>
 </div>
 
 <!-- Image Search Modal -->
-<div id="imageSearchModal" class="modal">
+<div id="imageSearchModal" class="image-search-modal">
   <div class="modal-content">
     <div class="modal-header">
       <h2><i class="fas fa-camera"></i> AI Image Search</h2>
@@ -185,7 +157,7 @@
 </div>
 
 <!-- Voice Search Modal -->
-<div id="voiceSearchModal" class="modal">
+<div id="voiceSearchModal" class="image-search-modal">
   <div class="modal-content" style="text-align: center;">
     <div class="modal-header">
       <h2><i class="fas fa-microphone"></i> AI Voice Search</h2>
@@ -361,37 +333,247 @@
   function loadShares() {
     const shares = JSON.parse(localStorage.getItem('socialShareTracking') || '{}');
     
-    if (Object.keys(shares).length === 0) {
-      document.getElementById('sharesTable').innerHTML = '<p style="color: var(--text-light);">No shares yet</p>';
-      return;
-    }
+    let html = '';
     
-    const html = `
-      <table>
-        <thead>
-          <tr>
-            <th>User Code</th>
-            <th>Facebook</th>
-            <th>Twitter</th>
-            <th>WhatsApp</th>
-            <th>Copy Link</th>
-            <th>Total Shares</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${Object.entries(shares).map(([code, data]) => `
+    if (Object.keys(shares).length === 0) {
+      // Show dummy comprehensive social share data
+      html = `
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>User Info</th>
+                <th>Social Platform</th>
+                <th>Product Shared</th>
+                <th>Date Shared</th>
+                <th>People Reached</th>
+                <th>Recipients Info</th>
+                <th>Conversions</th>
+                <th>Products Bought</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>Jean Mukiza</strong><br>
+                  <small style="color: var(--text-light);">+250 788 123 456</small><br>
+                  <small style="color: var(--text-light);">jean.m@email.com</small>
+                </td>
+                <td>
+                  <i class="fab fa-facebook" style="color: #1877f2; font-size: 1.2rem;"></i> Facebook
+                </td>
+                <td>
+                  <strong>Inyange Milk 1L</strong><br>
+                  <small style="color: var(--text-light);">Food Products</small>
+                </td>
+                <td>2025-01-15 10:30 AM</td>
+                <td><strong style="color: var(--primary);">24 people</strong></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • Marie K. (+250 788 234 567)<br>
+                    • Patrick N. (+250 788 345 678)<br>
+                    • Grace U. (+250 788 456 789)<br>
+                    <small style="color: var(--text-light);">+21 more...</small>
+                  </div>
+                </td>
+                <td><span style="color: var(--success); font-weight: 600;">3 purchases</span></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • Marie: Inyanga Milk 1L (x2)<br>
+                    • Patrick: Inyanga Milk 1L (x1)<br>
+                    • Grace: Inyanga Yogurt (x3)
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Sarah Uwase</strong><br>
+                  <small style="color: var(--text-light);">+250 788 987 654</small><br>
+                  <small style="color: var(--text-light);">sarah.u@email.com</small>
+                </td>
+                <td>
+                  <i class="fab fa-whatsapp" style="color: #25d366; font-size: 1.2rem;"></i> WhatsApp
+                </td>
+                <td>
+                  <strong>Azam Cooking Oil 2L</strong><br>
+                  <small style="color: var(--text-light);">Food Products</small>
+                </td>
+                <td>2025-01-16 02:15 PM</td>
+                <td><strong style="color: var(--primary);">18 people</strong></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • Diane M. (+250 788 111 222)<br>
+                    • Eric K. (+250 788 222 333)<br>
+                    • Fiona R. (+250 788 333 444)<br>
+                    <small style="color: var(--text-light);">+15 more...</small>
+                  </div>
+                </td>
+                <td><span style="color: var(--success); font-weight: 600;">5 purchases</span></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • Diane: Azam Oil 2L (x1)<br>
+                    • Eric: Azam Oil 2L (x2)<br>
+                    • Fiona: Azam Oil 2L (x1)<br>
+                    • John: Rice 5kg (x1)<br>
+                    • Alice: Sugar 2kg (x2)
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>David Nkusi</strong><br>
+                  <small style="color: var(--text-light);">+250 788 555 666</small><br>
+                  <small style="color: var(--text-light);">david.n@email.com</small>
+                </td>
+                <td>
+                  <i class="fab fa-twitter" style="color: #1da1f2; font-size: 1.2rem;"></i> Twitter
+                </td>
+                <td>
+                  <strong>Bralirwa Primus Beer</strong><br>
+                  <small style="color: var(--text-light);">Alcoholic Drinks</small>
+                </td>
+                <td>2025-01-17 06:45 PM</td>
+                <td><strong style="color: var(--primary);">42 people</strong></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • Kevin T. (+250 788 777 888)<br>
+                    • Linda S. (+250 788 888 999)<br>
+                    • Mike B. (+250 788 999 000)<br>
+                    <small style="color: var(--text-light);">+39 more...</small>
+                  </div>
+                </td>
+                <td><span style="color: var(--success); font-weight: 600;">7 purchases</span></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • Kevin: Primus Beer (x6)<br>
+                    • Linda: Primus Beer (x12)<br>
+                    • Mike: Primus Beer (x6)<br>
+                    • Tom: Mutzig Beer (x6)<br>
+                    • Anna: Soft Drinks (x12)<br>
+                    <small style="color: var(--text-light);">+2 more...</small>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Claire Ingabire</strong><br>
+                  <small style="color: var(--text-light);">+250 788 444 555</small><br>
+                  <small style="color: var(--text-light);">claire.i@email.com</small>
+                </td>
+                <td>
+                  <i class="fab fa-facebook" style="color: #1877f2; font-size: 1.2rem;"></i> Facebook
+                </td>
+                <td>
+                  <strong>Nivea Body Lotion</strong><br>
+                  <small style="color: var(--text-light);">Cosmetics & Personal Care</small>
+                </td>
+                <td>2025-01-18 11:20 AM</td>
+                <td><strong style="color: var(--primary);">31 people</strong></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • Rose M. (+250 788 121 212)<br>
+                    • Betty K. (+250 788 131 313)<br>
+                    • Nancy H. (+250 788 141 414)<br>
+                    <small style="color: var(--text-light);">+28 more...</small>
+                  </div>
+                </td>
+                <td><span style="color: var(--success); font-weight: 600;">9 purchases</span></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • Rose: Nivea Lotion (x2)<br>
+                    • Betty: Nivea Lotion (x1)<br>
+                    • Nancy: Nivea Cream (x3)<br>
+                    • Joy: Dove Soap (x5)<br>
+                    • Peace: Vaseline (x4)<br>
+                    <small style="color: var(--text-light);">+4 more...</small>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Emmanuel Habimana</strong><br>
+                  <small style="color: var(--text-light);">+250 788 666 777</small><br>
+                  <small style="color: var(--text-light);">emma.h@email.com</small>
+                </td>
+                <td>
+                  <i class="fab fa-whatsapp" style="color: #25d366; font-size: 1.2rem;"></i> WhatsApp
+                </td>
+                <td>
+                  <strong>Samsung Smart TV 43"</strong><br>
+                  <small style="color: var(--text-light);">Kitchenware & Electronics</small>
+                </td>
+                <td>2025-01-19 03:30 PM</td>
+                <td><strong style="color: var(--primary);">15 people</strong></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • James R. (+250 788 151 515)<br>
+                    • Peter M. (+250 788 161 616)<br>
+                    • Chris N. (+250 788 171 717)<br>
+                    <small style="color: var(--text-light);">+12 more...</small>
+                  </div>
+                </td>
+                <td><span style="color: var(--success); font-weight: 600;">2 purchases</span></td>
+                <td>
+                  <div style="font-size: 0.85rem;">
+                    • James: Samsung TV 43" (x1)<br>
+                    • Peter: LG TV 50" (x1)
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border-radius: 12px; border-left: 4px solid var(--accent);">
+          <h3 style="margin: 0 0 1rem 0; color: var(--primary);"><i class="fas fa-chart-line"></i> Social Sharing Impact Summary</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+              <div style="font-size: 2rem; font-weight: 800; color: #1877f2;">130</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Total People Reached</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+              <div style="font-size: 2rem; font-weight: 800; color: var(--success);">26</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Total Conversions</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+              <div style="font-size: 2rem; font-weight: 800; color: var(--accent);">20%</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Conversion Rate</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--card-bg); border-radius: 8px;">
+              <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">3.2M</div>
+              <div style="color: var(--text-light); font-size: 0.9rem;">Revenue Generated (RWF)</div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      html = `
+        <table>
+          <thead>
             <tr>
-              <td>${code}</td>
-              <td>${data.facebook.length}</td>
-              <td>${data.twitter.length}</td>
-              <td>${data.whatsapp.length}</td>
-              <td>${data.copy.length}</td>
-              <td><strong>${data.totalShares}</strong></td>
+              <th>User Code</th>
+              <th>Facebook</th>
+              <th>Twitter</th>
+              <th>WhatsApp</th>
+              <th>Copy Link</th>
+              <th>Total Shares</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
+          </thead>
+          <tbody>
+            ${Object.entries(shares).map(([code, data]) => `
+              <tr>
+                <td>${code}</td>
+                <td>${data.facebook.length}</td>
+                <td>${data.twitter.length}</td>
+                <td>${data.whatsapp.length}</td>
+                <td>${data.copy.length}</td>
+                <td><strong>${data.totalShares}</strong></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
     
     document.getElementById('sharesTable').innerHTML = html;
   }
@@ -400,8 +582,148 @@
     const referrals = JSON.parse(localStorage.getItem('referralTracking') || '{}');
     const credits = JSON.parse(localStorage.getItem('referralCredits') || '{}');
     
+    let html = '';
+    
     if (Object.keys(referrals).length === 0) {
-      document.getElementById('referralsTable').innerHTML = '<p style="color: var(--text-light);">No referrals yet</p>';
+      // Show dummy hierarchical data
+      html = `
+        <div style="padding: 1rem; background: var(--bg); border-radius: 12px;">
+          <p style="color: var(--text-light); margin-bottom: 1.5rem;">No real referrals yet. Showing example hierarchy:</p>
+          <div style="font-family: monospace; line-height: 2;">
+            <div style="padding: 0.5rem; background: var(--card-bg); border-left: 4px solid #30364F; margin-bottom: 0.5rem;">
+              <i class="fas fa-user" style="color: #30364F;"></i> <strong>ROOT-USER-001</strong> (Level 1 - 100%)
+              <span style="float: right; color: var(--success);">5,000 RWF earned</span>
+            </div>
+            <div style="padding: 0.5rem; background: var(--card-bg); border-left: 4px solid #ff6b9d; margin-left: 2rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-user" style="color: #ff6b9d;"></i> <strong>CHILD-USER-002</strong> (Level 2 - 50%)
+              <span style="float: right; color: var(--success);">2,500 RWF earned</span>
+            </div>
+            <div style="padding: 0.5rem; background: var(--card-bg); border-left: 4px solid #ff6b9d; margin-left: 2rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-user" style="color: #ff6b9d;"></i> <strong>CHILD-USER-003</strong> (Level 2 - 50%)
+              <span style="float: right; color: var(--success);">2,500 RWF earned</span>
+            </div>
+            <div style="padding: 0.5rem; background: var(--card-bg); border-left: 4px solid #ACBAC4; margin-left: 4rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-user" style="color: #ACBAC4;"></i> <strong>LEAF-USER-004</strong> (Level 3 - 25%)
+              <span style="float: right; color: var(--success);">1,250 RWF earned</span>
+            </div>
+            <div style="padding: 0.5rem; background: var(--card-bg); border-left: 4px solid #ACBAC4; margin-left: 4rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-user" style="color: #ACBAC4;"></i> <strong>LEAF-USER-005</strong> (Level 3 - 25%)
+              <span style="float: right; color: var(--success);">1,250 RWF earned</span>
+            </div>
+            <div style="padding: 0.5rem; background: var(--card-bg); border-left: 4px solid #E1D9BC; margin-left: 6rem;">
+              <i class="fas fa-user" style="color: #E1D9BC;"></i> <strong>LEAF-USER-006</strong> (Level 4 - 12.5%)
+              <span style="float: right; color: var(--success);">625 RWF earned</span>
+            </div>
+          </div>
+          <div style="margin-top: 1.5rem; padding: 1rem; background: var(--surface); border-radius: 8px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: var(--primary);">Referral Commission Structure:</h4>
+            <ul style="margin: 0; padding-left: 1.5rem; color: var(--text-body);">
+              <li>Level 1 (Root): 100% commission on direct referrals</li>
+              <li>Level 2 (Children): 50% commission from their referrals</li>
+              <li>Level 3+ (Leaves): 25% and decreasing by half each level</li>
+            </ul>
+          </div>
+        </div>
+      `;
+    } else {
+      html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Referral Code</th>
+              <th>Total Referrals</th>
+              <th>Converted</th>
+              <th>Credits Earned</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.entries(referrals).map(([code, refs]) => {
+              const converted = refs.filter(r => r.converted).length;
+              return `
+                <tr>
+                  <td>${code}</td>
+                  <td>${refs.length}</td>
+                  <td>${converted}</td>
+                  <td>${(credits[code] || 0).toLocaleString()} RWF</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+    
+    document.getElementById('referralsTable').innerHTML = html;
+  }
+  
+  // Products pagination
+  let currentProductPage = 1;
+  let totalProductPages = 1;
+  let allProducts = [];
+  let filteredProducts = [];
+  const productsPerPage = 5;
+  
+  function loadProducts() {
+    const productsTable = document.getElementById('productsTable');
+    if (!productsTable) return;
+    
+    productsTable.innerHTML = '<p style="color: var(--text-light);"><i class="fas fa-spinner fa-spin"></i> Loading products...</p>';
+    
+    // Try to load from localStorage first (cached from app.js)
+    const cachedProducts = localStorage.getItem('cachedProducts');
+    if (cachedProducts) {
+      try {
+        allProducts = JSON.parse(cachedProducts);
+        filteredProducts = [...allProducts];
+        currentProductPage = 1;
+        renderProductsPage();
+        return;
+      } catch (e) {
+        console.error('Error parsing cached products:', e);
+      }
+    }
+    
+    // Try to fetch from JSON file
+    fetch('simba_products.json')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load');
+        return res.json();
+      })
+      .then(products => {
+        // Cache for future use
+        localStorage.setItem('cachedProducts', JSON.stringify(products));
+        allProducts = products;
+        filteredProducts = [...allProducts];
+        currentProductPage = 1;
+        renderProductsPage();
+      })
+      .catch(err => {
+        console.error('Error loading products:', err);
+        productsTable.innerHTML = `
+          <div style="padding: 2rem; text-align: center;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
+            <p style="color: var(--danger); font-weight: 600;">Error loading products</p>
+            <p style="color: var(--text-light); margin: 1rem 0;">Make sure you're running this on a web server (not file://) or the products are cached from the main site.</p>
+            <button class="btn-primary" onclick="window.location.href='index.html'" style="margin-top: 1rem;">
+              <i class="fas fa-home"></i> Go to Main Site to Cache Products
+            </button>
+          </div>
+        `;
+      });
+  }
+  
+  function renderProductsPage() {
+    const productsTable = document.getElementById('productsTable');
+    if (!productsTable) return;
+    
+    totalProductPages = Math.ceil(filteredProducts.length / productsPerPage);
+    const start = (currentProductPage - 1) * productsPerPage;
+    const end = start + productsPerPage;
+    const pageProducts = filteredProducts.slice(start, end);
+    
+    if (pageProducts.length === 0) {
+      productsTable.innerHTML = '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No products found</p>';
+      document.getElementById('productsPagination').innerHTML = '';
       return;
     }
     
@@ -409,29 +731,224 @@
       <table>
         <thead>
           <tr>
-            <th>Referral Code</th>
-            <th>Total Referrals</th>
-            <th>Converted</th>
-            <th>Credits Earned</th>
+            <th>Photo</th>
+            <th>ID</th>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          ${Object.entries(referrals).map(([code, refs]) => {
-            const converted = refs.filter(r => r.converted).length;
-            return `
-              <tr>
-                <td>${code}</td>
-                <td>${refs.length}</td>
-                <td>${converted}</td>
-                <td>${(credits[code] || 0).toLocaleString()} RWF</td>
-              </tr>
-            `;
-          }).join('')}
+          ${pageProducts.map(p => `
+            <tr>
+              <td>
+                <img src="${p.image}" alt="${p.name}" 
+                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border);" 
+                     onerror="this.src='https://via.placeholder.com/60x60/f0f0f0/555?text=No+Image'">
+              </td>
+              <td>${p.id}</td>
+              <td><strong>${p.name}</strong></td>
+              <td><span style="background: var(--surface); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem;">${p.category}</span></td>
+              <td><strong style="color: var(--primary);">${p.price.toLocaleString()} RWF</strong></td>
+              <td><span style="color: var(--success); font-weight: 600;"><i class="fas fa-check-circle"></i> In Stock</span></td>
+              <td>
+                <button class="btn-outline" onclick="viewProduct(${p.id})" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                  <i class="fas fa-eye"></i> View
+                </button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <p style="color: var(--text-light); margin-top: 1rem; text-align: center;">
+        Showing ${start + 1}-${Math.min(end, filteredProducts.length)} of ${filteredProducts.length} products
+      </p>
+    `;
+    
+    productsTable.innerHTML = html;
+    renderProductsPagination();
+  }
+  
+  function renderProductsPagination() {
+    const pagination = document.getElementById('productsPagination');
+    if (!pagination) return;
+    
+    if (totalProductPages <= 1) {
+      pagination.innerHTML = '';
+      return;
+    }
+    
+    let html = `
+      <button class="btn-outline" onclick="changeProductPage(1)" ${currentProductPage === 1 ? 'disabled' : ''} style="padding: 0.5rem 1rem;">
+        <i class="fas fa-angle-double-left"></i>
+      </button>
+      <button class="btn-outline" onclick="changeProductPage(${currentProductPage - 1})" ${currentProductPage === 1 ? 'disabled' : ''} style="padding: 0.5rem 1rem;">
+        <i class="fas fa-angle-left"></i> Previous
+      </button>
+    `;
+    
+    // Show page numbers
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentProductPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalProductPages, startPage + maxPagesToShow - 1);
+    
+    if (endPage - startPage < maxPagesToShow - 1) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      html += `
+        <button class="btn-outline" onclick="changeProductPage(${i})" 
+                style="padding: 0.5rem 1rem; ${i === currentProductPage ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''}">
+          ${i}
+        </button>
+      `;
+    }
+    
+    html += `
+      <button class="btn-outline" onclick="changeProductPage(${currentProductPage + 1})" ${currentProductPage === totalProductPages ? 'disabled' : ''} style="padding: 0.5rem 1rem;">
+        Next <i class="fas fa-angle-right"></i>
+      </button>
+      <button class="btn-outline" onclick="changeProductPage(${totalProductPages})" ${currentProductPage === totalProductPages ? 'disabled' : ''} style="padding: 0.5rem 1rem;">
+        <i class="fas fa-angle-double-right"></i>
+      </button>
+    `;
+    
+    pagination.innerHTML = html;
+  }
+  
+  function changeProductPage(page) {
+    if (page < 1 || page > totalProductPages) return;
+    currentProductPage = page;
+    renderProductsPage();
+    
+    // Scroll to top of products table
+    const productsTable = document.getElementById('productsTable');
+    if (productsTable) {
+      productsTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  
+  function searchProducts() {
+    const searchInput = document.getElementById('productSearchInput');
+    if (!searchInput) return;
+    
+    const query = searchInput.value.toLowerCase().trim();
+    
+    if (!query) {
+      filteredProducts = [...allProducts];
+    } else {
+      filteredProducts = allProducts.filter(p => 
+        p.name.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query) ||
+        p.id.toString().includes(query)
+      );
+    }
+    
+    currentProductPage = 1;
+    renderProductsPage();
+  }
+  
+  function viewProduct(productId) {
+    window.open(`product.html?id=${productId}`, '_blank');
+  }
+  
+  function exportCustomers() {
+    const customers = JSON.parse(localStorage.getItem('customerDatabase') || '[]');
+    const blob = new Blob([JSON.stringify(customers, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `customers-${Date.now()}.json`;
+    a.click();
+  }
+  
+  function exportOrders() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const blob = new Blob([JSON.stringify(orders, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders-${Date.now()}.json`;
+    a.click();
+  }
+  
+  // Pagination for activity log
+  let currentPage = 1;
+  let totalPagesCount = 5;
+  const itemsPerPage = 10;
+  
+  function loadActivityLog() {
+    const activities = generateDummyActivities();
+    totalPagesCount = Math.ceil(activities.length / itemsPerPage);
+    renderActivityPage(currentPage, activities);
+  }
+  
+  function generateDummyActivities() {
+    const actions = [
+      { type: 'order', icon: 'shopping-cart', color: '#30364F', text: 'New order placed' },
+      { type: 'customer', icon: 'user-plus', color: '#ff6b9d', text: 'New customer registered' },
+      { type: 'product', icon: 'box', color: '#ACBAC4', text: 'Product updated' },
+      { type: 'payment', icon: 'credit-card', color: '#4CAF50', text: 'Payment received' },
+      { type: 'refund', icon: 'undo', color: '#FFC107', text: 'Refund processed' }
+    ];
+    
+    const activities = [];
+    for (let i = 0; i < 47; i++) {
+      const action = actions[Math.floor(Math.random() * actions.length)];
+      const date = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000);
+      activities.push({
+        id: `ACT-${1000 + i}`,
+        ...action,
+        user: `User ${Math.floor(Math.random() * 100) + 1}`,
+        date: date.toLocaleString()
+      });
+    }
+    return activities;
+  }
+  
+  function renderActivityPage(page, activities) {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageActivities = activities.slice(start, end);
+    
+    const html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Activity ID</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>User</th>
+            <th>Date & Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pageActivities.map(a => `
+            <tr>
+              <td>${a.id}</td>
+              <td><i class="fas fa-${a.icon}" style="color: ${a.color};"></i> ${a.type}</td>
+              <td>${a.text}</td>
+              <td>${a.user}</td>
+              <td>${a.date}</td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
     `;
     
-    document.getElementById('referralsTable').innerHTML = html;
+    document.getElementById('activityTable').innerHTML = html;
+    document.getElementById('currentPageNum').textContent = page;
+    document.getElementById('totalPages').textContent = totalPagesCount;
+  }
+  
+  function changePage(newPage) {
+    if (newPage < 1 || newPage > totalPagesCount) return;
+    currentPage = newPage;
+    const activities = generateDummyActivities();
+    renderActivityPage(currentPage, activities);
   }
 
   function exportData() {
@@ -462,6 +979,289 @@
   function showSection(section) {
     document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
     event.target.closest('a').classList.add('active');
+    
+    const content = document.getElementById('mainContent');
+    
+    switch(section) {
+      case 'overview':
+        content.innerHTML = getOverviewSection();
+        loadStats();
+        createRevenueChart();
+        createOrdersChart();
+        createCategoryChart();
+        break;
+      case 'analytics':
+        content.innerHTML = getAnalyticsSection();
+        createRevenueChart();
+        createOrdersChart();
+        createCategoryChart();
+        break;
+      case 'customers':
+        content.innerHTML = getCustomersSection();
+        loadCustomers();
+        break;
+      case 'orders':
+        content.innerHTML = getOrdersSection();
+        loadOrders();
+        break;
+      case 'products':
+        content.innerHTML = getProductsSection();
+        loadProducts();
+        break;
+      case 'marketing':
+        content.innerHTML = getMarketingSection();
+        loadShares();
+        loadReferrals();
+        break;
+      case 'reports':
+        content.innerHTML = getReportsSection();
+        loadActivityLog();
+        break;
+    }
+  }
+  
+  function getOverviewSection() {
+    return `
+      <div class="dashboard">
+        <h1><i class="fas fa-chart-line"></i> Overview Dashboard</h1>
+        
+        <div class="btn-group">
+          <button class="btn-primary" onclick="refreshData()">
+            <i class="fas fa-sync"></i> Refresh Data
+          </button>
+          <button class="btn-outline" onclick="exportData()">
+            <i class="fas fa-download"></i> Export All Data
+          </button>
+          <button class="btn-outline" onclick="generateReport()">
+            <i class="fas fa-file-pdf"></i> Generate Report
+          </button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="chart-container">
+          <h2><i class="fas fa-chart-bar"></i> Monthly Revenue Trend</h2>
+          <div class="bar-chart" id="revenueChart"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+          <div class="chart-container">
+            <h2><i class="fas fa-chart-line"></i> Daily Orders (Last 7 Days)</h2>
+            <div class="line-chart" id="ordersChart"></div>
+          </div>
+          
+          <div class="chart-container">
+            <h2><i class="fas fa-chart-pie"></i> Top Categories</h2>
+            <div id="categoryChart"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function getAnalyticsSection() {
+    return `
+      <div class="dashboard">
+        <h1><i class="fas fa-chart-bar"></i> Analytics & Reports</h1>
+        
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Growth Rate</h3>
+            <div class="value">+24%</div>
+          </div>
+          <div class="stat-card">
+            <div class="icon"><i class="fas fa-users"></i></div>
+            <h3>New Customers</h3>
+            <div class="value">156</div>
+          </div>
+          <div class="stat-card">
+            <div class="icon"><i class="fas fa-shopping-cart"></i></div>
+            <h3>Conversion Rate</h3>
+            <div class="value">3.2%</div>
+          </div>
+          <div class="stat-card">
+            <div class="icon"><i class="fas fa-star"></i></div>
+            <h3>Avg Rating</h3>
+            <div class="value">4.8</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h2><i class="fas fa-chart-bar"></i> Monthly Revenue Trend</h2>
+          <div class="bar-chart" id="revenueChart"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+          <div class="chart-container">
+            <h2><i class="fas fa-chart-line"></i> Daily Orders</h2>
+            <div class="line-chart" id="ordersChart"></div>
+          </div>
+          
+          <div class="chart-container">
+            <h2><i class="fas fa-chart-pie"></i> Top Categories</h2>
+            <div id="categoryChart"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function getCustomersSection() {
+    return `
+      <div class="dashboard">
+        <h1><i class="fas fa-users"></i> Customer Management</h1>
+        
+        <div class="btn-group">
+          <button class="btn-primary" onclick="loadCustomers()">
+            <i class="fas fa-sync"></i> Refresh
+          </button>
+          <button class="btn-outline" onclick="exportCustomers()">
+            <i class="fas fa-download"></i> Export Customers
+          </button>
+        </div>
+        
+        <div class="data-section">
+          <h2><i class="fas fa-users"></i> Customer Database</h2>
+          <div id="customerTable"></div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function getOrdersSection() {
+    return `
+      <div class="dashboard">
+        <h1><i class="fas fa-shopping-cart"></i> Orders Management</h1>
+        
+        <div class="btn-group">
+          <button class="btn-primary" onclick="loadOrders()">
+            <i class="fas fa-sync"></i> Refresh
+          </button>
+          <button class="btn-outline" onclick="exportOrders()">
+            <i class="fas fa-download"></i> Export Orders
+          </button>
+        </div>
+        
+        <div class="data-section">
+          <h2><i class="fas fa-shopping-cart"></i> All Orders</h2>
+          <div id="ordersTable"></div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function getProductsSection() {
+    return `
+      <div class="dashboard">
+        <h1><i class="fas fa-box"></i> Products Management</h1>
+        
+        <div class="btn-group">
+          <div class="search-bar" style="max-width: 400px; margin: 0;">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="productSearchInput" placeholder="Search products..." autocomplete="off" onkeyup="searchProducts()" />
+          </div>
+          <button class="btn-primary" onclick="loadProducts()">
+            <i class="fas fa-sync"></i> Refresh
+          </button>
+          <button class="btn-outline" onclick="alert('Add product feature coming soon!')">
+            <i class="fas fa-plus"></i> Add Product
+          </button>
+        </div>
+        
+        <div class="data-section">
+          <h2><i class="fas fa-box"></i> Product Inventory</h2>
+          <div id="productsTable"></div>
+          <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem;" id="productsPagination">
+            <!-- Pagination will be inserted here -->
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function getMarketingSection() {
+    return `
+      <div class="dashboard">
+        <h1><i class="fas fa-bullhorn"></i> Marketing & Promotions</h1>
+        
+        <div class="data-section">
+          <h2><i class="fas fa-share-alt"></i> Social Media Shares</h2>
+          <div id="sharesTable"></div>
+        </div>
+
+        <div class="data-section">
+          <h2><i class="fas fa-gift"></i> Referral Tracking (Hierarchical)</h2>
+          <div id="referralsTable"></div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function getReportsSection() {
+    return `
+      <div class="dashboard">
+        <h1><i class="fas fa-file-alt"></i> Reports & Analytics</h1>
+        
+        <div class="btn-group">
+          <button class="btn-primary" onclick="generateReport()">
+            <i class="fas fa-file-pdf"></i> Generate Full Report
+          </button>
+          <button class="btn-outline" onclick="exportData()">
+            <i class="fas fa-download"></i> Export All Data
+          </button>
+          <button class="btn-outline" onclick="clearAllData()" style="background: var(--danger); color: white;">
+            <i class="fas fa-trash"></i> Clear All Data
+          </button>
+        </div>
+        
+        <div class="data-section">
+          <h2><i class="fas fa-chart-bar"></i> Available Reports</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; padding: 1rem;">
+            <div class="stat-card" style="cursor: pointer;" onclick="alert('Sales Report: Total sales, revenue trends, top products')">
+              <div class="icon"><i class="fas fa-chart-line"></i></div>
+              <h3>Sales Report</h3>
+              <p style="color: var(--text-light); font-size: 0.9rem;">Revenue & sales analytics</p>
+            </div>
+            <div class="stat-card" style="cursor: pointer;" onclick="alert('Customer Report: Demographics, behavior, lifetime value')">
+              <div class="icon"><i class="fas fa-users"></i></div>
+              <h3>Customer Report</h3>
+              <p style="color: var(--text-light); font-size: 0.9rem;">Customer insights</p>
+            </div>
+            <div class="stat-card" style="cursor: pointer;" onclick="alert('Inventory Report: Stock levels, popular items, reorder alerts')">
+              <div class="icon"><i class="fas fa-box"></i></div>
+              <h3>Inventory Report</h3>
+              <p style="color: var(--text-light); font-size: 0.9rem;">Stock management</p>
+            </div>
+            <div class="stat-card" style="cursor: pointer;" onclick="alert('Marketing Report: Campaign performance, ROI, engagement')">
+              <div class="icon"><i class="fas fa-bullhorn"></i></div>
+              <h3>Marketing Report</h3>
+              <p style="color: var(--text-light); font-size: 0.9rem;">Campaign analytics</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="data-section">
+          <h2><i class="fas fa-table"></i> Recent Activity Log</h2>
+          <div id="activityTable"></div>
+          <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+            <button class="btn-outline" onclick="changePage(1)" style="padding: 0.5rem 1rem;">
+              <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button class="btn-outline" onclick="changePage(currentPage - 1)" style="padding: 0.5rem 1rem;">
+              <i class="fas fa-angle-left"></i> Previous
+            </button>
+            <span style="color: var(--text); padding: 0 1rem;">Page <strong id="currentPageNum">1</strong> of <strong id="totalPages">5</strong></span>
+            <button class="btn-outline" onclick="changePage(currentPage + 1)" style="padding: 0.5rem 1rem;">
+              Next <i class="fas fa-angle-right"></i>
+            </button>
+            <button class="btn-outline" onclick="changePage(totalPagesCount)" style="padding: 0.5rem 1rem;">
+              <i class="fas fa-angle-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   function generateReport() {
@@ -471,12 +1271,13 @@
   function createRevenueChart() {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     const revenue = [4500000, 5200000, 4800000, 6100000, 5900000, 7200000];
+    const colors = ['#30364F', '#ff6b9d', '#ACBAC4', '#E1D9BC', '#4CAF50', '#FFC107'];
     const maxRevenue = Math.max(...revenue);
     
     const html = months.map((month, i) => {
       const height = (revenue[i] / maxRevenue) * 100;
       return `
-        <div class="bar" style="height: ${height}%;">
+        <div class="bar" style="height: ${height}%; background: linear-gradient(to top, ${colors[i]}, ${colors[i]}dd);">
           <span class="bar-value">${(revenue[i] / 1000000).toFixed(1)}M</span>
           <span class="bar-label">${month}</span>
         </div>
@@ -537,7 +1338,7 @@
   // Load on page load
   window.onload = () => {
     if (checkAuth()) {
-      refreshData();
+      loadStats();
       createRevenueChart();
       createOrdersChart();
       createCategoryChart();

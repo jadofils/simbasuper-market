@@ -84,12 +84,14 @@ let pin = '';
 // Load cart
 function loadCart() {
   cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  console.log('Cart loaded:', cart.length, 'items');
   renderCart();
 }
 
 // Render cart
 function renderCart() {
   const layout = document.getElementById('cartLayout');
+  console.log('renderCart called, layout element:', layout);
   if (!layout) return;
   
   if (cart.length === 0) {
@@ -101,9 +103,11 @@ function renderCart() {
         <a href="index.html" class="btn-primary">${cartTranslations[currentLang].continueShopping}</a>
       </div>
     `;
+    console.log('Cart is empty');
     return;
   }
   
+  console.log('Rendering cart with', cart.length, 'items');
   const referralDiscount = parseInt(localStorage.getItem('referralDiscount') || '0');
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const discountAmount = Math.round(subtotal * (referralDiscount / 100));
@@ -164,6 +168,7 @@ function renderCart() {
       </button>
     </div>
   `;
+  console.log('Cart rendered, checkout button added');
 }
 
 // Format price
@@ -207,10 +212,30 @@ function updateCartBadge() {
 
 // Open checkout modal
 function openCheckout() {
+  console.log('openCheckout called');
   const modal = document.getElementById('checkoutModal');
+  console.log('Modal element:', modal);
   if (modal) {
     modal.style.display = 'flex';
+    modal.style.position = 'fixed';
+    modal.style.inset = '0';
+    modal.style.zIndex = '1000';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    
+    // Ensure modal content is visible
+    const modalContent = modal.querySelector('.modal');
+    if (modalContent) {
+      modalContent.style.display = 'block';
+      modalContent.style.position = 'relative';
+      modalContent.style.zIndex = '1001';
+      console.log('Modal content styled');
+    }
+    
     updateCheckoutTranslations();
+    console.log('Modal opened');
+  } else {
+    console.error('Modal element not found!');
   }
 }
 
@@ -249,13 +274,32 @@ function proceedToPayment() {
     return;
   }
   
-  // Generate and show invoice first
-  showInvoice({
-    name: name,
-    phone: phone,
-    address: address,
-    paymentMethod: payment.value
-  });
+  // Prepare invoice data
+  const referralDiscount = parseInt(localStorage.getItem('referralDiscount') || '0');
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const discountAmount = Math.round(subtotal * (referralDiscount / 100));
+  const delivery = 2000;
+  const total = subtotal - discountAmount + delivery;
+  
+  const invoiceData = {
+    customer: { name, phone, address },
+    paymentMethod: payment.value,
+    items: cart,
+    subtotal: subtotal,
+    discount: discountAmount,
+    discountPercent: referralDiscount,
+    delivery: delivery,
+    total: total
+  };
+  
+  // Store data for invoice page
+  sessionStorage.setItem('invoiceData', JSON.stringify(invoiceData));
+  sessionStorage.setItem('pendingCustomerData', JSON.stringify({
+    name, phone, address, paymentMethod: payment.value
+  }));
+  
+  // Redirect to invoice page
+  window.location.href = 'invoice.html';
 }
 
 // Handle PIN input
@@ -308,6 +352,19 @@ function completeOrder() {
   const delivery = 2000;
   const total = subtotalAfterDiscount + delivery;
   
+  // Award loyalty points (1 point per 100 RWF)
+  const pointsEarned = Math.floor(total / 100);
+  const loyaltyData = JSON.parse(localStorage.getItem('loyaltyData') || '{"points": 0, "tier": "Bronze", "referrals": [], "activity": []}');
+  loyaltyData.points += pointsEarned;
+  loyaltyData.activity.unshift({
+    type: 'purchase',
+    icon: 'fa-shopping-cart',
+    points: pointsEarned,
+    desc: `Purchase - Order ${orderRef}`,
+    date: new Date().toLocaleDateString()
+  });
+  localStorage.setItem('loyaltyData', JSON.stringify(loyaltyData));
+  
   // Create order data
   const orderData = {
     orderRef: orderRef,
@@ -324,7 +381,8 @@ function completeOrder() {
     total: total,
     paymentMethod: customerData.paymentMethod,
     orderDate: new Date().toISOString(),
-    status: 'Confirmed'
+    status: 'Confirmed',
+    pointsEarned: pointsEarned
   };
   
   // Save order to localStorage
@@ -350,6 +408,12 @@ function completeOrder() {
   const invoiceStep = document.getElementById('invoiceStep');
   if (invoiceStep) invoiceStep.style.display = 'none';
   document.getElementById('step3').style.display = 'block';
+  
+  // Show points earned message
+  const successMsg = document.getElementById('successMsg');
+  if (successMsg) {
+    successMsg.innerHTML = `${cartTranslations[currentLang].successMsg}<br><br><strong style="color: var(--accent);">🎉 You earned ${pointsEarned} loyalty points!</strong>`;
+  }
   
   document.getElementById('orderRef').textContent = 
     `${cartTranslations[currentLang].orderRef} ${orderRef}`;
@@ -389,18 +453,33 @@ function completeOrder() {
 function updateCheckoutTranslations() {
   const t = cartTranslations[currentLang];
   
-  document.getElementById('checkoutTitle').textContent = t.checkoutTitle;
-  document.getElementById('labelName').textContent = t.labelName;
-  document.getElementById('labelPhone').textContent = t.labelPhone;
-  document.getElementById('labelAddress').textContent = t.labelAddress;
-  document.getElementById('labelPayment').textContent = t.labelPayment;
-  document.getElementById('proceedBtn').textContent = t.proceedBtn;
-  document.getElementById('momoTitle').textContent = t.momoTitle;
-  document.getElementById('momoInstructions').textContent = t.momoInstructions;
-  document.getElementById('successTitle').textContent = t.successTitle;
-  document.getElementById('successMsg').textContent = t.successMsg;
-  document.getElementById('backShopBtn').textContent = t.backShopBtn;
-  document.getElementById('cartTitle').textContent = t.cartTitle;
+  const elements = {
+    checkoutTitle: document.getElementById('checkoutTitle'),
+    labelName: document.getElementById('labelName'),
+    labelPhone: document.getElementById('labelPhone'),
+    labelAddress: document.getElementById('labelAddress'),
+    labelPayment: document.getElementById('labelPayment'),
+    proceedBtn: document.getElementById('proceedBtn'),
+    momoTitle: document.getElementById('momoTitle'),
+    momoInstructions: document.getElementById('momoInstructions'),
+    successTitle: document.getElementById('successTitle'),
+    successMsg: document.getElementById('successMsg'),
+    backShopBtn: document.getElementById('backShopBtn'),
+    cartTitle: document.getElementById('cartTitle')
+  };
+  
+  if (elements.checkoutTitle) elements.checkoutTitle.textContent = t.checkoutTitle;
+  if (elements.labelName) elements.labelName.textContent = t.labelName;
+  if (elements.labelPhone) elements.labelPhone.textContent = t.labelPhone;
+  if (elements.labelAddress) elements.labelAddress.textContent = t.labelAddress;
+  if (elements.labelPayment) elements.labelPayment.textContent = t.labelPayment;
+  if (elements.proceedBtn) elements.proceedBtn.textContent = t.proceedBtn;
+  if (elements.momoTitle) elements.momoTitle.textContent = t.momoTitle;
+  if (elements.momoInstructions) elements.momoInstructions.textContent = t.momoInstructions;
+  if (elements.successTitle) elements.successTitle.textContent = t.successTitle;
+  if (elements.successMsg) elements.successMsg.textContent = t.successMsg;
+  if (elements.backShopBtn) elements.backShopBtn.textContent = t.backShopBtn;
+  if (elements.cartTitle) elements.cartTitle.textContent = t.cartTitle;
 }
 
 // Initialize
@@ -409,6 +488,33 @@ document.addEventListener('DOMContentLoaded', () => {
   
   loadCart();
   updateCheckoutTranslations();
+  
+  // Check if returning from invoice with confirmation
+  if (sessionStorage.getItem('invoiceConfirmed') === 'true') {
+    sessionStorage.removeItem('invoiceConfirmed');
+    const customerData = JSON.parse(sessionStorage.getItem('pendingCustomerData'));
+    
+    if (customerData) {
+      // Open modal and proceed to payment step
+      openCheckout();
+      document.getElementById('step1').style.display = 'none';
+      
+      if (customerData.paymentMethod === 'cash') {
+        completeOrder();
+      } else {
+        // Show MoMo/Airtel payment screen
+        document.getElementById('step2').style.display = 'block';
+        
+        const referralDiscount = parseInt(localStorage.getItem('referralDiscount') || '0');
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const discountAmount = Math.round(subtotal * (referralDiscount / 100));
+        const total = subtotal - discountAmount + 2000;
+        
+        document.getElementById('momoAmount').textContent = 
+          `${cartTranslations[currentLang].momoAmount} ${formatPrice(total)}`;
+      }
+    }
+  }
   
   // Close modal
   const closeBtn = document.getElementById('closeModal');
@@ -705,9 +811,15 @@ function generateReceipt(orderData) {
   // Save receipt HTML
   localStorage.setItem('lastReceipt', receiptHTML);
   
-  // Add download button to success screen
+  // Add download and track buttons to success screen
   const successScreen = document.getElementById('step3');
   if (successScreen) {
+    const trackBtn = document.createElement('button');
+    trackBtn.className = 'btn-primary';
+    trackBtn.style.marginTop = '1rem';
+    trackBtn.innerHTML = '<i class="fas fa-map-marked-alt"></i> Track Your Order';
+    trackBtn.onclick = () => window.location.href = `track-order.html?ref=${orderData.orderRef}`;
+    
     const downloadBtn = document.createElement('button');
     downloadBtn.className = 'btn-outline';
     downloadBtn.style.marginTop = '1rem';
@@ -716,6 +828,7 @@ function generateReceipt(orderData) {
     
     const backBtn = document.getElementById('backShopBtn');
     if (backBtn && backBtn.parentNode) {
+      backBtn.parentNode.insertBefore(trackBtn, backBtn);
       backBtn.parentNode.insertBefore(downloadBtn, backBtn);
     }
   }
@@ -745,3 +858,12 @@ function getAllOrders() {
 // Make functions globally available
 window.viewLastReceipt = viewLastReceipt;
 window.getAllOrders = getAllOrders;
+window.closeInvoice = closeInvoice;
+window.proceedToPaymentFromInvoice = proceedToPaymentFromInvoice;
+window.openCheckout = openCheckout;
+window.updateQuantity = updateQuantity;
+window.removeFromCart = removeFromCart;
+window.closeCheckout = closeCheckout;
+window.proceedToPayment = proceedToPayment;
+window.handlePinInput = handlePinInput;
+window.confirmPin = confirmPin;
