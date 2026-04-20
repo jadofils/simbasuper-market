@@ -8,7 +8,45 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     .dashboard-layout { display: flex; min-height: calc(100vh - 80px); }
-    .sidebar { width: 280px; background: var(--card-bg); border-right: 2px solid var(--border); padding: 2rem 0; position: sticky; top: 80px; height: calc(100vh - 80px); overflow-y: auto; }
+    .sidebar { 
+      width: 280px; 
+      background: var(--card-bg); 
+      border-right: 2px solid var(--border); 
+      padding: 2rem 0; 
+      position: sticky; 
+      top: 80px; 
+      height: calc(100vh - 80px); 
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+      transition: scrollbar-color 0.3s;
+    }
+    
+    .sidebar:hover {
+      scrollbar-color: var(--border) transparent;
+    }
+    
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 3px;
+      transition: background 0.3s;
+    }
+    
+    .sidebar:hover::-webkit-scrollbar-thumb {
+      background: var(--border);
+    }
+    
+    .sidebar:hover::-webkit-scrollbar-thumb:hover {
+      background: var(--text-light);
+    }
     .sidebar-menu { list-style: none; padding: 0; margin: 0; }
     .sidebar-menu li { margin-bottom: 0.5rem; }
     .sidebar-menu a { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; color: var(--text); text-decoration: none; transition: all 0.3s; border-left: 3px solid transparent; }
@@ -91,6 +129,7 @@
       <li><a href="delivery-management.html"><i class="fas fa-truck"></i> Delivery</a></li>
       <li><a href="#products" onclick="showSection('products')"><i class="fas fa-box"></i> Products</a></li>
       <li><a href="#marketing" onclick="showSection('marketing')"><i class="fas fa-bullhorn"></i> Marketing</a></li>
+      <li><a href="live-selling/admin-dashboard.html"><i class="fas fa-video"></i> Live Settings</a></li>
       <li><a href="#reports" onclick="showSection('reports')"><i class="fas fa-file-alt"></i> Reports</a></li>
       <li><a href="index.html"><i class="fas fa-home"></i> View Store</a></li>
       <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>

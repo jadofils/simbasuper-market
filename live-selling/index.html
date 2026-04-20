@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Selling — Simba Supermarket</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="css/live-selling.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="../index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+      <a href="schedule.html" class="nav-link">
+        <i class="fas fa-calendar"></i>
+        <span>Schedule</span>
+      </a>
+    </div>
+
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0;">
+        <i class="fas fa-video" style="color: #ff4444;"></i> Live Selling
+      </h2>
+    </div>
+
+    <div class="nav-right">
+      <a href="../index.html" class="nav-link">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      
+      <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      
+      <a href="../login.html" class="nav-link" id="loginLink">
+        <i class="fas fa-sign-in-alt"></i>
+        <span>Login</span>
+      </a>
+      
+      <a href="../cart.html" class="cart-btn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+        <span class="cart-text">Cart</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- LIVE SELLING LAYOUT -->
+<div class="live-container">
+  
+  <!-- LEFT: Video Player -->
+  <div class="live-video-section">
+    
+    <!-- Live Badge -->
+    <div class="live-badge-top">
+      <span class="live-indicator">
+        <span class="live-dot"></span>
+        LIVE
+      </span>
+      <span class="viewer-count">
+        <i class="fas fa-eye"></i>
+        <span id="viewerCount">1,247</span>
+      </span>
+    </div>
+
+    <!-- Video Player -->
+    <div class="video-player" id="videoPlayer">
+      <!-- Demo Video - Shows how live selling works -->
+      <video id="liveVideo" autoplay loop playsinline controlsList="nodownload">
+        <source src="../assets/live-buy-and -sell-fruits.mp4" type="video/mp4">
+        <source src="../assets/selling-live.mp4" type="video/mp4">
+        <track kind="subtitles" src="../assets/subtitles-en.vtt" srclang="en" label="English" default>
+        <track kind="subtitles" src="../assets/subtitles-fr.vtt" srclang="fr" label="Français">
+        <track kind="subtitles" src="../assets/subtitles-rw.vtt" srclang="rw" label="Ikinyarwanda">
+        Your browser does not support the video tag.
+      </video>
+      
+      <!-- Custom Video Controls -->
+      <div class="custom-video-controls">
+        <button class="video-control-btn" onclick="togglePlayPause()" id="playPauseBtn">
+          <i class="fas fa-pause"></i>
+        </button>
+        <div class="video-progress-container" onclick="seekVideo(event)">
+          <div class="video-progress-bar" id="progressBar"></div>
+        </div>
+        <span class="video-time" id="videoTime">0:00 / 0:00</span>
+        <button class="video-control-btn" onclick="changeSpeed(-0.25)" title="Slower">
+          <i class="fas fa-backward"></i>
+        </button>
+        <span class="speed-indicator" id="speedIndicator">1x</span>
+        <button class="video-control-btn" onclick="changeSpeed(0.25)" title="Faster">
+          <i class="fas fa-forward"></i>
+        </button>
+        <button class="video-control-btn" onclick="toggleMute()" id="muteBtn">
+          <i class="fas fa-volume-up"></i>
+        </button>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50" oninput="changeVolume(this.value)">
+        <button class="video-control-btn" onclick="toggleSubtitles()" id="subtitlesBtn">
+          <i class="fas fa-closed-captioning"></i>
+        </button>
+        <button class="video-control-btn" onclick="toggleFullscreen()">
+          <i class="fas fa-expand"></i>
+        </button>
+      </div>
+      
+      <!-- Demo Overlay Banner -->
+      <div class="demo-banner">
+        <i class="fas fa-info-circle"></i>
+        <span>DEMO MODE - This is a sample video showing how live selling works</span>
+      </div>
+      
+      <!-- Live Captions (AI Translated) -->
+      <div class="live-captions" id="liveCaptions" style="display: none;"></div>
+      
+      <!-- Caption Toggle Button -->
+      <button class="caption-toggle" id="captionToggle" onclick="toggleLiveCaptions()" title="Toggle Live Captions">
+        <i class="fas fa-closed-captioning"></i>
+        <span>CC</span>
+      </button>
+      
+      <!-- Reactions Overlay -->
+      <div class="reactions-overlay" id="reactionsOverlay"></div>
+      
+      <!-- Featured Product Overlay -->
+      <div class="featured-product-overlay" id="featuredProduct" style="display: none;">
+        <div class="featured-product-card">
+          <img src="" alt="" id="featuredImg">
+          <div class="featured-info">
+            <h4 id="featuredName"></h4>
+            <p class="featured-price" id="featuredPrice"></p>
+            <button class="btn-primary btn-sm" onclick="quickBuyFeatured()">
+              <i class="fas fa-cart-plus"></i> Buy Now
+            </button>
+          </div>
+          <button class="close-featured" onclick="closeFeaturedProduct()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Host Info -->
+    <div class="host-info">
+      <img src="https://ui-avatars.com/api/?name=Sarah+Uwase&background=30364F&color=fff&size=128" alt="Host" class="host-avatar">
+      <div class="host-details">
+        <h3>Sarah Uwase</h3>
+        <p><i class="fas fa-star"></i> Top Seller • 15K followers</p>
+      </div>
+      <button class="btn-outline btn-sm follow-btn">
+        <i class="fas fa-user-plus"></i> Follow
+      </button>
+      <button class="btn-outline btn-sm" onclick="showDemoInstructions()" title="How to use Live Selling">
+        <i class="fas fa-question-circle"></i>
+      </button>
+    </div>
+
+    <!-- Reaction Buttons -->
+    <div class="reaction-buttons">
+      <button class="reaction-btn" onclick="sendReaction('heart')" title="Love it">
+        <i class="fas fa-heart"></i>
+      </button>
+      <button class="reaction-btn" onclick="sendReaction('fire')" title="Fire">
+        <i class="fas fa-fire"></i>
+      </button>
+      <button class="reaction-btn" onclick="sendReaction('clap')" title="Clap">
+        <i class="fas fa-hands-clapping"></i>
+      </button>
+      <button class="reaction-btn" onclick="sendReaction('laugh')" title="Laugh">
+        <i class="fas fa-face-laugh"></i>
+      </button>
+      <button class="reaction-btn" onclick="sendReaction('wow')" title="Wow">
+        <i class="fas fa-face-surprise"></i>
+      </button>
+    </div>
+
+    <!-- Advertisement Display -->
+    <div class="live-ad-container" id="liveAdContainer" style="display: none;">
+      <div class="live-ad-card">
+        <button class="live-ad-close" onclick="closeCurrentAd()">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="live-ad-badge">Sponsored</div>
+        <div class="live-ad-content">
+          <div class="live-ad-icon" id="liveAdIcon">
+            <i class="fas fa-ad"></i>
+          </div>
+          <div class="live-ad-text">
+            <h4 id="liveAdTitle">Advertisement</h4>
+            <p id="liveAdContent">Loading...</p>
+          </div>
+          <div class="live-ad-company" id="liveAdCompany"></div>
+        </div>
+        <div class="live-ad-timer">
+          <div class="live-ad-progress" id="liveAdProgress"></div>
+          <span id="liveAdTimer">15s</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Chat & Products -->
+  <div class="live-sidebar">
+    
+    <!-- Tabs -->
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" data-tab="chat">
+        <i class="fas fa-comments"></i> Chat
+      </button>
+      <button class="sidebar-tab" data-tab="products">
+        <i class="fas fa-shopping-bag"></i> Products
+      </button>
+      <button class="sidebar-tab" data-tab="comments">
+        <i class="fas fa-comment-dots"></i> Comments
+      </button>
+    </div>
+
+    <!-- Chat Tab -->
+    <div class="tab-content active" id="chatTab">
+      <!-- Language Selector -->
+      <div class="language-selector">
+        <button class="language-btn active" data-lang="en" onclick="selectChatLanguage('en')">
+          🇬🇧 EN
+        </button>
+        <button class="language-btn" data-lang="fr" onclick="selectChatLanguage('fr')">
+          🇫🇷 FR
+        </button>
+        <button class="language-btn" data-lang="rw" onclick="selectChatLanguage('rw')">
+          🇷🇼 RW
+        </button>
+      </div>
+      
+      <!-- Advertisement Banner -->
+      <div class="ad-banner" id="adBanner">
+        <button class="ad-close" onclick="closeAd()">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="ad-content">
+          <i class="fas fa-gift"></i>
+          <div>
+            <strong>Special Offer!</strong>
+            <p>Get 20% OFF on orders above 50,000 RWF</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-messages" id="chatMessages">
+        <!-- Messages will be added here -->
+      </div>
+      <div class="chat-input-container">
+        <button class="interaction-btn" id="micBtn" onclick="toggleMic()" title="Request to speak">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button class="interaction-btn" id="handBtn" onclick="raiseHand()" title="Raise hand">
+          <i class="fas fa-hand"></i>
+        </button>
+        <input type="text" id="chatInput" placeholder="Say something..." maxlength="200">
+        <button class="send-btn" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Products Tab -->
+    <div class="tab-content" id="productsTab">
+      <div class="live-products-grid" id="liveProductsGrid">
+        <!-- Products will be loaded here -->
+      </div>
+    </div>
+
+    <!-- Comments Tab -->
+    <div class="tab-content" id="commentsTab">
+      <div class="comments-section">
+        <div class="comments-header">
+          <h3><i class="fas fa-comments"></i> Comments (<span id="commentCount">0</span>)</h3>
+          <select id="commentSort" onchange="sortComments()">
+            <option value="recent">Most Recent</option>
+            <option value="popular">Most Popular</option>
+          </select>
+        </div>
+        
+        <div class="comment-input-box">
+          <img src="https://ui-avatars.com/api/?name=You&background=30364F&color=fff&size=64" alt="You" class="comment-avatar">
+          <div class="comment-input-wrapper">
+            <textarea id="commentInput" placeholder="Add a comment..." maxlength="500" rows="2"></textarea>
+            <div class="comment-actions">
+              <span class="char-count"><span id="charCount">0</span>/500</span>
+              <button class="btn-primary btn-sm" onclick="postComment()">
+                <i class="fas fa-paper-plane"></i> Post
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="comments-list" id="commentsList">
+          <!-- Comments will be added here -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="logo-text">Simba Supermarket</span>
+      </div>
+      <p><i class="fas fa-map-marker-alt"></i> Kigali, Rwanda</p>
+    </div>
+    <div>
+      <p>© 2025 Simba Supermarket. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ai-translator.js"></script>
+<script src="js/live-viewer.js"></script>
+<script src="js/live-chat.js"></script>
+<script src="js/live-products.js"></script>
+<script src="js/live-comments.js"></script>
+<script src="js/live-ad-display.js"></script>
+<script>
+// Toggle live captions
+function toggleLiveCaptions() {
+  const btn = document.getElementById('captionToggle');
+  const isEnabled = window.toggleCaptions ? window.toggleCaptions() : false;
+  
+  if (isEnabled) {
+    btn.classList.add('active');
+  } else {
+    btn.classList.remove('active');
+  }
+}
+
+// Select chat language
+function selectChatLanguage(lang) {
+  // Update active button
+  document.querySelectorAll('.language-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
+  
+  // Change language
+  if (window.changeUserLanguage) {
+    window.changeUserLanguage(lang);
+  }
+  
+  // Clear and reload chat
+  const chatContainer = document.getElementById('chatMessages');
+  if (chatContainer) {
+    chatContainer.innerHTML = '';
+  }
+  
+  // Trigger storage event to reload chat
+  localStorage.setItem('language', lang);
+  window.dispatchEvent(new StorageEvent('storage', {
+    key: 'language',
+    newValue: lang
+  }));
+}
+
+// Initialize language selector
+document.addEventListener('DOMContentLoaded', () => {
+  const savedLang = localStorage.getItem('language') || 'en';
+  selectChatLanguage(savedLang);
+  
+  // Update login link based on auth status
+  const loginLink = document.getElementById('loginLink');
+  if (loginLink && typeof isAuthenticated === 'function' && isAuthenticated()) {
+    const user = getCurrentUser();
+    if (user) {
+      if (user.role === 'admin') {
+        loginLink.innerHTML = '<i class="fas fa-user-shield"></i><span>Admin</span>';
+        loginLink.href = 'admin-dashboard.html';
+      } else {
+        loginLink.innerHTML = '<i class="fas fa-user-circle"></i><span>Account</span>';
+        loginLink.href = '#';
+        loginLink.onclick = (e) => {
+          e.preventDefault();
+          showToast(`Logged in as ${user.email}`);
+        };
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

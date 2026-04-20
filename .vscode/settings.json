@@ -1,0 +1,7 @@
+{
+    "files.autoSave": "afterDelay",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "on",
+    "editor.formatOnPaste": true,
+    "files.autoSaveWhenNoErrors": true
+}

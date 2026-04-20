@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — Simba Live</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+<div class="login-container">
+  <div class="login-box">
+    <div class="login-header">
+      <i class="fas fa-shield-alt"></i>
+      <h1>Admin Login</h1>
+      <p>Simba Live Selling Management</p>
+    </div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label><i class="fas fa-envelope"></i> Email</label>
+        <input type="email" id="username" required placeholder="Enter email" autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-lock"></i> Password</label>
+        <input type="password" id="password" required placeholder="Enter password" autocomplete="current-password">
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="rememberMe">
+          Remember me
+        </label>
+      </div>
+
+      <button type="submit" class="btn-primary full-width">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>Demo Credentials:</p>
+      <div style="background: var(--surface); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+        <p style="margin: 0.5rem 0;"><strong>Customer:</strong></p>
+        <p style="margin: 0.25rem 0; font-family: monospace; font-size: 0.9rem;">customer@simba.com</p>
+        <p style="margin: 0.25rem 0 1rem 0; font-family: monospace; font-size: 0.9rem;">Simba@123</p>
+        
+        <p style="margin: 0.5rem 0;"><strong>Admin:</strong></p>
+        <p style="margin: 0.25rem 0; font-family: monospace; font-size: 0.9rem;">admin@simba.com</p>
+        <p style="margin: 0.25rem 0; font-family: monospace; font-size: 0.9rem;">Simba@123</p>
+      </div>
+      <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Live View</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../app.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Watch Archive — Simba Live</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="css/live-selling.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="../index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+      <a href="schedule.html" class="nav-link">
+        <i class="fas fa-calendar"></i>
+        <span>Schedule</span>
+      </a>
+    </div>
+
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0;">
+        <i class="fas fa-history"></i> Watch Archive
+      </h2>
+    </div>
+
+    <div class="nav-right">
+      <a href="../index.html" class="nav-link">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      
+      <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      
+      <a href="../login.html" class="nav-link" id="loginLink">
+        <i class="fas fa-sign-in-alt"></i>
+        <span>Login</span>
+      </a>
+      
+      <a href="../cart.html" class="cart-btn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+        <span class="cart-text">Cart</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ARCHIVE LAYOUT -->
+<div class="live-container">
+  
+  <!-- LEFT: Video Player -->
+  <div class="live-video-section">
+    
+    <!-- Archive Badge -->
+    <div class="live-badge-top">
+      <span class="archive-indicator">
+        <i class="fas fa-history"></i>
+        ARCHIVE
+      </span>
+      <span class="viewer-count">
+        <i class="fas fa-eye"></i>
+        <span id="viewCount">0</span> views
+      </span>
+    </div>
+
+    <!-- Video Player -->
+    <div class="video-player" id="videoPlayer">
+      <video id="archiveVideo" controls playsinline controlsList="nodownload">
+        <source src="" type="video/mp4">
+        <track kind="captions" src="" srclang="en" label="English">
+        <track kind="captions" src="" srclang="fr" label="Français">
+        <track kind="captions" src="" srclang="rw" label="Ikinyarwanda">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
+    <!-- Host Info -->
+    <div class="host-info">
+      <img src="" alt="Host" class="host-avatar" id="hostAvatar">
+      <div class="host-details">
+        <h3 id="hostName">Loading...</h3>
+        <p id="sessionDate"><i class="fas fa-calendar"></i> Loading...</p>
+      </div>
+      <a href="schedule.html" class="btn-outline btn-sm">
+        <i class="fas fa-arrow-left"></i> Back to Schedule
+      </a>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Products -->
+  <div class="live-sidebar">
+    
+    <!-- Tabs -->
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" data-tab="products">
+        <i class="fas fa-shopping-bag"></i> Products
+      </button>
+      <button class="sidebar-tab" data-tab="info">
+        <i class="fas fa-info-circle"></i> Info
+      </button>
+    </div>
+
+    <!-- Products Tab -->
+    <div class="tab-content active" id="productsTab">
+      <div class="live-products-grid" id="liveProductsGrid">
+        <!-- Products will be loaded here -->
+      </div>
+    </div>
+
+    <!-- Info Tab -->
+    <div class="tab-content" id="infoTab">
+      <div style="padding: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: var(--text);">Session Details</h3>
+        <div style="background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <p style="margin: 0 0 0.5rem 0; color: var(--text-light);"><strong>Duration:</strong> <span id="duration">-</span></p>
+          <p style="margin: 0 0 0.5rem 0; color: var(--text-light);"><strong>Views:</strong> <span id="totalViews">-</span></p>
+          <p style="margin: 0; color: var(--text-light);"><strong>Date:</strong> <span id="recordedDate">-</span></p>
+        </div>
+        <a href="index.html" class="btn-primary full-width">
+          <i class="fas fa-video"></i> Watch Live Sessions
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="logo-text">Simba Supermarket</span>
+      </div>
+      <p><i class="fas fa-map-marker-alt"></i> Kigali, Rwanda</p>
+    </div>
+    <div>
+      <p>© 2025 Simba Supermarket. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/live-products.js"></script>
+<script>
+// Load archive session
+document.addEventListener('DOMContentLoaded', () => {
+  // Load theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const themeIcon = document.querySelector('#themeToggle i');
+  if (themeIcon) {
+    themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  }
+  
+  // Theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    });
+  }
+  
+  // Load archive session
+  const session = JSON.parse(localStorage.getItem('archiveSession') || '{}');
+  
+  if (session.videoUrl) {
+    // Update video
+    const video = document.getElementById('archiveVideo');
+    const source = video.querySelector('source');
+    source.src = session.videoUrl;
+    video.load();
+    
+    // Update host info
+    document.getElementById('hostAvatar').src = session.hostAvatar;
+    document.getElementById('hostName').textContent = session.host;
+    document.getElementById('sessionDate').innerHTML = `<i class="fas fa-calendar"></i> ${session.date}`;
+    
+    // Update stats
+    document.getElementById('viewCount').textContent = session.views.toLocaleString();
+    document.getElementById('duration').textContent = session.duration;
+    document.getElementById('totalViews').textContent = session.views.toLocaleString();
+    document.getElementById('recordedDate').textContent = session.date;
+    
+    // Update title
+    document.title = session.title + ' — Archive';
+  }
+  
+  // Tab switching
+  const tabs = document.querySelectorAll('.sidebar-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.getAttribute('data-tab');
+      
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(`${targetTab}Tab`).classList.add('active');
+    });
+  });
+  
+  // Update cart badge
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const badge = document.getElementById('cartBadge');
+  if (badge) badge.textContent = totalItems;
+  
+  // Update login link based on auth status
+  const loginLink = document.getElementById('loginLink');
+  if (loginLink && typeof isAuthenticated === 'function' && isAuthenticated()) {
+    loginLink.innerHTML = '<i class="fas fa-user-circle"></i><span>Admin</span>';
+    loginLink.href = 'admin-dashboard.html';
+  }
+});
+</script>
+</body>
+</html>

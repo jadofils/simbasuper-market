@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Schedule — Simba Supermarket</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="css/schedule.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="../index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+    </div>
+
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0;">
+        <i class="fas fa-calendar"></i> Live Selling Schedule
+      </h2>
+    </div>
+
+    <div class="nav-right">
+      <a href="../index.html" class="nav-link">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      
+      <a href="index.html" class="nav-link">
+        <i class="fas fa-video"></i>
+        <span>Watch Live</span>
+      </a>
+      
+      <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      
+      <a href="../login.html" class="nav-link" id="loginLink">
+        <i class="fas fa-sign-in-alt"></i>
+        <span>Login</span>
+      </a>
+      
+      <a href="../cart.html" class="cart-btn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+        <span class="cart-text">Cart</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- SCHEDULE PAGE -->
+<div class="schedule-page">
+  
+  <!-- Hero Section -->
+  <div class="schedule-hero">
+    <h1><i class="fas fa-video"></i> Live Selling Schedule</h1>
+    <p>Join our live sessions for exclusive deals and instant shopping!</p>
+  </div>
+
+  <!-- Live Now Section -->
+  <section class="schedule-section" id="liveNowSection">
+    <div class="section-header">
+      <h2>
+        <span class="live-pulse"></span>
+        Live Now
+      </h2>
+    </div>
+    <div class="schedule-grid" id="liveNowGrid">
+      <!-- Live sessions will be added here -->
+    </div>
+  </section>
+
+  <!-- Upcoming Section -->
+  <section class="schedule-section">
+    <div class="section-header">
+      <h2><i class="fas fa-clock"></i> Upcoming Sessions</h2>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="today">Today</button>
+        <button class="filter-btn" data-filter="week">This Week</button>
+      </div>
+    </div>
+    <div class="schedule-grid" id="upcomingGrid">
+      <!-- Upcoming sessions will be added here -->
+    </div>
+  </section>
+
+  <!-- Past Recordings Section -->
+  <section class="schedule-section">
+    <div class="section-header">
+      <h2><i class="fas fa-history"></i> Past Recordings</h2>
+    </div>
+    <div class="schedule-grid" id="pastGrid">
+      <!-- Past recordings will be added here -->
+    </div>
+  </section>
+
+  <!-- Top Hosts Section -->
+  <section class="schedule-section">
+    <div class="section-header">
+      <h2><i class="fas fa-star"></i> Top Hosts</h2>
+    </div>
+    <div class="hosts-grid" id="hostsGrid">
+      <!-- Top hosts will be added here -->
+    </div>
+  </section>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="logo-text">Simba Supermarket</span>
+      </div>
+      <p><i class="fas fa-map-marker-alt"></i> Kigali, Rwanda</p>
+    </div>
+    <div>
+      <p>© 2025 Simba Supermarket. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../app.js"></script>
+<script src="js/auth.js"></script>
+<script>
+// Schedule data
+const scheduleData = {
+  liveNow: [
+    {
+      id: 1,
+      title: "Fresh Fruits & Vegetables - Live Sale! 🍎🥕",
+      host: "Sarah Uwase",
+      hostAvatar: "https://ui-avatars.com/api/?name=Sarah+Uwase&background=30364F&color=fff&size=128",
+      viewers: 1247,
+      startTime: new Date(),
+      videoUrl: "../assets/live-buy-and -sell-fruits.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400&h=300&fit=crop"
+    },
+    {
+      id: 2,
+      title: "Amazing Deals - Everything Must Go! 🔥",
+      host: "Jean Claude",
+      hostAvatar: "https://ui-avatars.com/api/?name=Jean+Claude&background=E1D9BC&color=30364F&size=128",
+      viewers: 892,
+      startTime: new Date(),
+      videoUrl: "../assets/selling-live.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=300&fit=crop"
+    }
+  ],
+  upcoming: [
+    {
+      id: 2,
+      title: "Kitchen Essentials - New Arrivals",
+      host: "Jean Claude",
+      hostAvatar: "https://ui-avatars.com/api/?name=Jean+Claude&background=E1D9BC&color=30364F&size=128",
+      scheduledTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
+      thumbnail: "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=400&h=300&fit=crop",
+      reminders: 234
+    },
+    {
+      id: 3,
+      title: "Baby Products Special - Up to 40% OFF",
+      host: "Grace Mutesi",
+      hostAvatar: "https://ui-avatars.com/api/?name=Grace+Mutesi&background=ACBAC4&color=30364F&size=128",
+      scheduledTime: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours from now
+      thumbnail: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&h=300&fit=crop",
+      reminders: 567
+    },
+    {
+      id: 4,
+      title: "Food & Beverages Mega Sale",
+      host: "Patrick Nkusi",
+      hostAvatar: "https://ui-avatars.com/api/?name=Patrick+Nkusi&background=30364F&color=fff&size=128",
+      scheduledTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+      thumbnail: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop",
+      reminders: 892
+    }
+  ],
+  past: [
+    {
+      id: 5,
+      title: "Fresh Fruits & Vegetables - Live Sale! 🍎🥕",
+      host: "Sarah Uwase",
+      hostAvatar: "https://ui-avatars.com/api/?name=Sarah+Uwase&background=30364F&color=fff&size=128",
+      views: 3421,
+      duration: "1h 23m",
+      videoUrl: "../assets/live-buy-and -sell-fruits.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400&h=300&fit=crop",
+      date: "Yesterday"
+    },
+    {
+      id: 6,
+      title: "Amazing Deals - Everything Must Go! 🔥",
+      host: "Jean Claude",
+      hostAvatar: "https://ui-avatars.com/api/?name=Jean+Claude&background=E1D9BC&color=30364F&size=128",
+      views: 2156,
+      duration: "58m",
+      videoUrl: "../assets/selling-live.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=300&fit=crop",
+      date: "2 days ago"
+    }
+  ]
+};
+
+const topHosts = [
+  { name: "Sarah Uwase", followers: "15.2K", sales: "2.3K", avatar: "https://ui-avatars.com/api/?name=Sarah+Uwase&background=30364F&color=fff&size=128" },
+  { name: "Jean Claude", followers: "12.8K", sales: "1.9K", avatar: "https://ui-avatars.com/api/?name=Jean+Claude&background=E1D9BC&color=30364F&size=128" },
+  { name: "Grace Mutesi", followers: "10.5K", sales: "1.5K", avatar: "https://ui-avatars.com/api/?name=Grace+Mutesi&background=ACBAC4&color=30364F&size=128" },
+  { name: "Patrick Nkusi", followers: "9.2K", sales: "1.2K", avatar: "https://ui-avatars.com/api/?name=Patrick+Nkusi&background=30364F&color=fff&size=128" }
+];
+
+// Render functions
+function renderLiveNow() {
+  const grid = document.getElementById('liveNowGrid');
+  const section = document.getElementById('liveNowSection');
+  
+  if (scheduleData.liveNow.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  
+  grid.innerHTML = scheduleData.liveNow.map(session => `
+    <a href="index.html?session=${session.id}" class="schedule-card live-card">
+      <div class="card-thumbnail">
+        <img src="${session.thumbnail}" alt="${session.title}">
+        <div class="live-badge">
+          <span class="live-dot"></span>
+          LIVE
+        </div>
+        <div class="viewer-badge">
+          <i class="fas fa-eye"></i> ${session.viewers.toLocaleString()}
+        </div>
+      </div>
+      <div class="card-content">
+        <h3>${session.title}</h3>
+        <div class="host-info-small">
+          <img src="${session.hostAvatar}" alt="${session.host}">
+          <span>${session.host}</span>
+        </div>
+        <button class="btn-primary full-width" onclick="event.preventDefault(); joinLive(${session.id})">
+          <i class="fas fa-sign-in-alt"></i> Join Live Now
+        </button>
+      </div>
+    </a>
+  `).join('');
+}
+
+function renderUpcoming() {
+  const grid = document.getElementById('upcomingGrid');
+  
+  grid.innerHTML = scheduleData.upcoming.map(session => {
+    const countdown = getCountdown(session.scheduledTime);
+    return `
+    <div class="schedule-card">
+      <div class="card-thumbnail">
+        <img src="${session.thumbnail}" alt="${session.title}">
+        <div class="countdown-badge" id="countdown-${session.id}">
+          ${countdown}
+        </div>
+      </div>
+      <div class="card-content">
+        <h3>${session.title}</h3>
+        <div class="host-info-small">
+          <img src="${session.hostAvatar}" alt="${session.host}">
+          <span>${session.host}</span>
+        </div>
+        <div class="session-time">
+          <i class="fas fa-clock"></i>
+          ${formatDateTime(session.scheduledTime)}
+        </div>
+        <button class="btn-outline full-width" onclick="setReminder(${session.id})">
+          <i class="fas fa-bell"></i> Set Reminder (${session.reminders})
+        </button>
+      </div>
+    </div>
+  `;
+  }).join('');
+  
+  // Start countdown timers
+  startCountdowns();
+}
+
+function getCountdown(targetTime) {
+  const now = new Date();
+  const diff = targetTime - now;
+  
+  if (diff <= 0) return 'Starting soon...';
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  } else {
+    return `${minutes}m ${seconds}s`;
+  }
+}
+
+function startCountdowns() {
+  setInterval(() => {
+    scheduleData.upcoming.forEach(session => {
+      const countdownEl = document.getElementById(`countdown-${session.id}`);
+      if (countdownEl) {
+        countdownEl.textContent = getCountdown(session.scheduledTime);
+      }
+    });
+  }, 1000);
+}
+
+function renderPast() {
+  const grid = document.getElementById('pastGrid');
+  
+  grid.innerHTML = scheduleData.past.map(session => `
+    <div class="schedule-card" onclick="watchArchive(${session.id})" style="cursor: pointer;">
+      <div class="card-thumbnail">
+        <img src="${session.thumbnail}" alt="${session.title}">
+        <div class="play-overlay">
+          <i class="fas fa-play-circle"></i>
+        </div>
+        <div class="duration-badge">${session.duration}</div>
+      </div>
+      <div class="card-content">
+        <h3>${session.title}</h3>
+        <div class="host-info-small">
+          <img src="${session.hostAvatar}" alt="${session.host}">
+          <span>${session.host}</span>
+        </div>
+        <div class="session-stats">
+          <span><i class="fas fa-eye"></i> ${session.views.toLocaleString()} views</span>
+          <span>${session.date}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function watchArchive(sessionId) {
+  const session = scheduleData.past.find(s => s.id === sessionId);
+  if (session) {
+    localStorage.setItem('archiveSession', JSON.stringify(session));
+    window.location.href = 'archive.html?id=' + sessionId;
+  }
+}
+
+function renderHosts() {
+  const grid = document.getElementById('hostsGrid');
+  
+  grid.innerHTML = topHosts.map(host => `
+    <div class="host-card">
+      <img src="${host.avatar}" alt="${host.name}" class="host-card-avatar">
+      <h4>${host.name}</h4>
+      <div class="host-stats">
+        <span><i class="fas fa-users"></i> ${host.followers}</span>
+        <span><i class="fas fa-shopping-bag"></i> ${host.sales}</span>
+      </div>
+      <button class="btn-primary btn-sm full-width">
+        <i class="fas fa-user-plus"></i> Follow
+      </button>
+    </div>
+  `).join('');
+}
+
+// Helper functions
+function formatTimeUntil(date) {
+  const diff = date - new Date();
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (hours > 24) {
+    return `in ${Math.floor(hours / 24)} days`;
+  } else if (hours > 0) {
+    return `in ${hours}h ${minutes}m`;
+  } else {
+    return `in ${minutes}m`;
+  }
+}
+
+function formatDateTime(date) {
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function setReminder(sessionId) {
+  showToast('Reminder set! We\'ll notify you when the session starts.');
+}
+
+function joinLive(sessionId) {
+  // Store session ID and redirect to live page
+  localStorage.setItem('currentLiveSession', sessionId);
+  window.location.href = 'index.html?session=' + sessionId;
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Theme toggle
+function toggleTheme() {
+  const html = document.documentElement;
+  const currentTheme = html.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  const icon = document.querySelector('#themeToggle i');
+  if (icon) icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  // Load theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const themeIcon = document.querySelector('#themeToggle i');
+  if (themeIcon) themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  
+  // Theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+  
+  // Render all sections
+  renderLiveNow();
+  renderUpcoming();
+  renderPast();
+  renderHosts();
+  
+  // Update cart badge
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const badge = document.getElementById('cartBadge');
+  if (badge) badge.textContent = totalItems;
+  
+  // Update login link based on auth status
+  const loginLink = document.getElementById('loginLink');
+  if (loginLink && typeof isAuthenticated === 'function' && isAuthenticated()) {
+    loginLink.innerHTML = '<i class="fas fa-user-circle"></i><span>Admin</span>';
+    loginLink.href = 'admin-dashboard.html';
+  }
+});
+</script>
+</body>
+</html>

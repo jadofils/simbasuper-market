@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Live Selling Management</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="css/admin-dashboard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="../index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+      <span class="admin-badge">
+        <i class="fas fa-shield-alt"></i> Admin
+      </span>
+    </div>
+
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0;">
+        <i class="fas fa-cog"></i> Live Selling Admin Dashboard
+      </h2>
+    </div>
+
+    <div class="nav-right">
+      <a href="index.html" class="nav-link">
+        <i class="fas fa-video"></i>
+        <span>Live View</span>
+      </a>
+      
+      <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      
+      <button class="nav-icon-btn" onclick="logout()" title="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ADMIN DASHBOARD -->
+<div class="admin-container">
+  
+  <!-- Sidebar Navigation -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-menu">
+      <button class="menu-item active" data-section="overview">
+        <i class="fas fa-chart-line"></i>
+        <span>Overview</span>
+      </button>
+      <button class="menu-item" data-section="sessions">
+        <i class="fas fa-video"></i>
+        <span>Live Sessions</span>
+      </button>
+      <button class="menu-item" data-section="ads">
+        <i class="fas fa-ad"></i>
+        <span>Advertisements</span>
+      </button>
+      <button class="menu-item" data-section="hosts">
+        <i class="fas fa-users"></i>
+        <span>Hosts</span>
+      </button>
+      <button class="menu-item" data-section="analytics">
+        <i class="fas fa-chart-bar"></i>
+        <span>Analytics</span>
+      </button>
+      <button class="menu-item" data-section="settings">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+      </button>
+      <button class="menu-item" data-section="archive">
+        <i class="fas fa-archive"></i>
+        <span>Archives</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    
+    <!-- Overview Section -->
+    <section class="admin-section active" id="overviewSection">
+      <div class="section-header">
+        <h2><i class="fas fa-chart-line"></i> Overview</h2>
+        <button class="btn-primary" onclick="refreshDashboard()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #667eea;">
+            <i class="fas fa-video"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalSessions">0</h3>
+            <p>Total Sessions</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #f093fb;">
+            <i class="fas fa-eye"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="totalViewers">0</h3>
+            <p>Total Viewers</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #4facfe;">
+            <i class="fas fa-ad"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="activeAds">0</h3>
+            <p>Active Ads</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #43e97b;">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="adRevenue">0 RWF</h3>
+            <p>Ad Revenue</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="actions-grid">
+          <button class="action-btn" onclick="window.location.href='studio.html'">
+            <i class="fas fa-broadcast-tower"></i>
+            <span>Open Studio</span>
+          </button>
+          <button class="action-btn" onclick="window.location.href='schedule.html'">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Schedule Session</span>
+          </button>
+          <button class="action-btn" onclick="switchSection('ads')">
+            <i class="fas fa-ad"></i>
+            <span>Manage Ads</span>
+          </button>
+          <button class="action-btn" onclick="exportData()">
+            <i class="fas fa-download"></i>
+            <span>Export Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="recent-activity">
+        <h3>Recent Activity</h3>
+        <div class="activity-list" id="activityList">
+          <!-- Activity items will be loaded here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Sessions Section -->
+    <section class="admin-section" id="sessionsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-video"></i> Live Sessions Management</h2>
+        <button class="btn-primary" onclick="createNewSession()">
+          <i class="fas fa-plus"></i> New Session
+        </button>
+      </div>
+
+      <!-- Sessions List -->
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Host</th>
+              <th>Status</th>
+              <th>Viewers</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sessionsTableBody">
+            <!-- Sessions will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Ads Section -->
+    <section class="admin-section" id="adsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-ad"></i> Advertisement Management</h2>
+        <div class="header-actions">
+          <select id="adStatusFilter" onchange="filterAds()">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <button class="btn-primary" onclick="window.location.href='advertise.html'">
+            <i class="fas fa-plus"></i> New Ad Request
+          </button>
+        </div>
+      </div>
+
+      <!-- Ads Stats -->
+      <div class="ads-stats-grid">
+        <div class="ads-stat-card">
+          <h4 id="adsActive">0</h4>
+          <p>Active Ads</p>
+        </div>
+        <div class="ads-stat-card">
+          <h4 id="adsPending">0</h4>
+          <p>Pending</p>
+        </div>
+        <div class="ads-stat-card">
+          <h4 id="adsRevenue">0 RWF</h4>
+          <p>Total Revenue</p>
+        </div>
+        <div class="ads-stat-card">
+          <h4 id="adsImpressions">0</h4>
+          <p>Impressions</p>
+        </div>
+      </div>
+
+      <!-- Ads Table -->
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Ad Title</th>
+              <th>Duration</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Impressions</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adsTableBody">
+            <!-- Ads will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Hosts Section -->
+    <section class="admin-section" id="hostsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-users"></i> Hosts Management</h2>
+        <button class="btn-primary" onclick="addNewHost()">
+          <i class="fas fa-user-plus"></i> Add Host
+        </button>
+      </div>
+
+      <!-- Hosts Grid -->
+      <div class="hosts-grid" id="hostsGrid">
+        <!-- Hosts will be loaded here -->
+      </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section class="admin-section" id="analyticsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-chart-bar"></i> Analytics & Reports</h2>
+        <div class="header-actions">
+          <select id="analyticsRange">
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="90">Last 90 Days</option>
+          </select>
+          <button class="btn-outline" onclick="exportAnalytics()">
+            <i class="fas fa-file-export"></i> Export
+          </button>
+        </div>
+      </div>
+
+      <!-- Analytics Cards -->
+      <div class="analytics-grid">
+        <div class="analytics-card">
+          <h3>Session Performance</h3>
+          <div class="analytics-content" id="sessionPerformance">
+            <!-- Chart will be here -->
+          </div>
+        </div>
+
+        <div class="analytics-card">
+          <h3>Ad Performance</h3>
+          <div class="analytics-content" id="adPerformance">
+            <!-- Chart will be here -->
+          </div>
+        </div>
+
+        <div class="analytics-card">
+          <h3>Viewer Engagement</h3>
+          <div class="analytics-content" id="viewerEngagement">
+            <!-- Chart will be here -->
+          </div>
+        </div>
+
+        <div class="analytics-card">
+          <h3>Revenue Breakdown</h3>
+          <div class="analytics-content" id="revenueBreakdown">
+            <!-- Chart will be here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Section -->
+    <section class="admin-section" id="settingsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-cog"></i> System Settings</h2>
+        <button class="btn-primary" onclick="saveSettings()">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+
+      <!-- Settings Tabs -->
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="general">General</button>
+        <button class="settings-tab" data-tab="streaming">Streaming</button>
+        <button class="settings-tab" data-tab="advertising">Advertising</button>
+        <button class="settings-tab" data-tab="notifications">Notifications</button>
+      </div>
+
+      <!-- General Settings -->
+      <div class="settings-content active" id="generalSettings">
+        <div class="settings-group">
+          <h3>Platform Settings</h3>
+          
+          <div class="setting-item">
+            <label>Platform Name</label>
+            <input type="text" id="platformName" value="Simba Live Selling" class="setting-input">
+          </div>
+
+          <div class="setting-item">
+            <label>Default Language</label>
+            <select id="defaultLanguage" class="setting-input">
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="rw">Kinyarwanda</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="enableComments" checked>
+              Enable Comments
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="enableReactions" checked>
+              Enable Reactions
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streaming Settings -->
+      <div class="settings-content" id="streamingSettings">
+        <div class="settings-group">
+          <h3>Streaming Configuration</h3>
+          
+          <div class="setting-item">
+            <label>Max Concurrent Viewers</label>
+            <input type="number" id="maxViewers" value="10000" class="setting-input">
+          </div>
+
+          <div class="setting-item">
+            <label>Session Duration Limit (minutes)</label>
+            <input type="number" id="sessionDuration" value="120" class="setting-input">
+          </div>
+
+          <div class="setting-item">
+            <label>Video Quality</label>
+            <select id="videoQuality" class="setting-input">
+              <option value="720p">720p HD</option>
+              <option value="1080p" selected>1080p Full HD</option>
+              <option value="4k">4K Ultra HD</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="autoArchive" checked>
+              Auto-Archive Sessions
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="enableSubtitles" checked>
+              Enable Live Subtitles
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advertising Settings -->
+      <div class="settings-content" id="advertisingSettings">
+        <div class="settings-group">
+          <h3>Advertisement Configuration</h3>
+          
+          <div class="setting-item">
+            <label>Ad Display Interval (seconds)</label>
+            <input type="number" id="adInterval" value="120" class="setting-input">
+          </div>
+
+          <div class="setting-item">
+            <label>Max Ad Duration (seconds)</label>
+            <input type="number" id="maxAdDuration" value="60" class="setting-input">
+          </div>
+
+          <div class="setting-item">
+            <label>Min Ad Price (RWF)</label>
+            <input type="number" id="minAdPrice" value="10000" class="setting-input">
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="autoApproveAds">
+              Auto-Approve Ads
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="showAdBadge" checked>
+              Show "Sponsored" Badge
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications Settings -->
+      <div class="settings-content" id="notificationsSettings">
+        <div class="settings-group">
+          <h3>Notification Preferences</h3>
+          
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="notifyNewSession" checked>
+              New Session Started
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="notifyAdRequest" checked>
+              New Ad Request
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="notifyHighViewers" checked>
+              High Viewer Count Alert
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="notifyRevenue" checked>
+              Revenue Milestones
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label>Email Notifications</label>
+            <input type="email" id="notificationEmail" placeholder="admin@simba.rw" class="setting-input">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Archive Section -->
+    <section class="admin-section" id="archiveSection">
+      <div class="section-header">
+        <h2><i class="fas fa-archive"></i> Session Archives</h2>
+        <div class="header-actions">
+          <input type="text" id="archiveSearch" placeholder="Search archives..." class="search-input">
+          <button class="btn-outline" onclick="clearArchives()">
+            <i class="fas fa-trash"></i> Clear Old
+          </button>
+        </div>
+      </div>
+
+      <!-- Archives Grid -->
+      <div class="archives-grid" id="archivesGrid">
+        <!-- Archives will be loaded here -->
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="logo-text">Simba Supermarket</span>
+      </div>
+      <p><i class="fas fa-map-marker-alt"></i> Kigali, Rwanda</p>
+    </div>
+    <div>
+      <p>© 2025 Simba Supermarket. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../app.js"></script>
+<script src="js/auth.js"></script>
+<script>requireAuth();</script>
+<script src="js/admin-dashboard.js"></script>
+</body>
+</html>

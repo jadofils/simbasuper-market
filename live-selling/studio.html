@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Studio — Simba Supermarket</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="css/studio.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="../index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+      <span class="studio-badge">
+        <i class="fas fa-broadcast-tower"></i> Studio
+      </span>
+    </div>
+
+    <div class="nav-center">
+      <h2 style="color: var(--text); margin: 0;">
+        <i class="fas fa-video"></i> Live Broadcast Studio
+      </h2>
+    </div>
+
+    <div class="nav-right">
+      <a href="schedule.html" class="nav-link">
+        <i class="fas fa-calendar"></i>
+        <span>Schedule</span>
+      </a>
+      
+      <button id="themeToggle" class="nav-icon-btn" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      
+      <button class="nav-icon-btn" onclick="logout()" title="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- STUDIO LAYOUT -->
+<div class="studio-container">
+  
+  <!-- LEFT: Preview & Controls -->
+  <div class="studio-main">
+    
+    <!-- Stream Status -->
+    <div class="stream-status" id="streamStatus">
+      <div class="status-indicator offline">
+        <span class="status-dot"></span>
+        <span class="status-text">Offline</span>
+      </div>
+      <div class="stream-stats">
+        <span><i class="fas fa-eye"></i> <strong id="studioViewers">0</strong> viewers</span>
+        <span><i class="fas fa-clock"></i> <strong id="streamDuration">00:00</strong></span>
+      </div>
+    </div>
+
+    <!-- Video Preview -->
+    <div class="video-preview" id="videoPreview">
+      <video id="previewVideo" controls playsinline controlsList="nodownload">
+        <source src="../assets/live-buy-and -sell-fruits.mp4" type="video/mp4">
+        <source src="../assets/selling-live.mp4" type="video/mp4">
+        <track kind="captions" src="" srclang="en" label="English">
+        <track kind="captions" src="" srclang="fr" label="Français">
+        <track kind="captions" src="" srclang="rw" label="Ikinyarwanda">
+      </video>
+      <div class="preview-overlay">
+        <i class="fas fa-video-slash" style="font-size: 4rem; color: rgba(255,255,255,0.5);"></i>
+        <p style="color: rgba(255,255,255,0.8); margin-top: 1rem;">Camera Off</p>
+      </div>
+    </div>
+
+    <!-- Stream Controls -->
+    <div class="stream-controls">
+      <div class="control-group">
+        <button class="control-btn" id="cameraBtn" onclick="toggleCamera()" title="Camera">
+          <i class="fas fa-video"></i>
+        </button>
+        <button class="control-btn" id="micBtn" onclick="toggleMic()" title="Microphone">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button class="control-btn" id="screenBtn" onclick="toggleScreen()" title="Share Screen">
+          <i class="fas fa-desktop"></i>
+        </button>
+        <button class="control-btn" id="settingsBtn" onclick="openSettings()" title="Settings">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+
+      <button class="start-stream-btn" id="startStreamBtn" onclick="toggleStream()">
+        <i class="fas fa-circle"></i>
+        <span>Start Live Stream</span>
+      </button>
+
+      <div class="control-group">
+        <button class="control-btn danger" onclick="endStream()" title="End Stream" id="endBtn" disabled>
+          <i class="fas fa-stop"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stream Title -->
+    <div class="stream-title-section">
+      <label>Stream Title</label>
+      <input type="text" id="streamTitle" placeholder="e.g., Flash Sale - 50% Off Beauty Products!" value="Amazing Deals Today! 🔥">
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Products & Chat -->
+  <div class="studio-sidebar">
+    
+    <!-- Tabs -->
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" data-tab="products">
+        <i class="fas fa-box"></i> Products
+      </button>
+      <button class="sidebar-tab" data-tab="ads">
+        <i class="fas fa-ad"></i> Ads
+      </button>
+      <button class="sidebar-tab" data-tab="chat">
+        <i class="fas fa-comments"></i> Chat
+      </button>
+      <button class="sidebar-tab" data-tab="analytics">
+        <i class="fas fa-chart-line"></i> Analytics
+      </button>
+    </div>
+
+    <!-- Products Tab -->
+    <div class="tab-content active" id="productsTab">
+      <div class="products-header">
+        <h3>Featured Products</h3>
+        <button class="btn-primary btn-sm" onclick="openProductPicker()">
+          <i class="fas fa-plus"></i> Add Product
+        </button>
+      </div>
+      
+      <div class="featured-products-list" id="featuredProductsList">
+        <!-- Featured products will be added here -->
+      </div>
+
+      <div class="products-search">
+        <input type="text" id="productSearch" placeholder="Search products..." onkeyup="searchProducts()">
+      </div>
+
+      <div class="products-list" id="studioProductsList">
+        <!-- Products will be loaded here -->
+      </div>
+    </div>
+
+    <!-- Ads Tab -->
+    <div class="tab-content" id="adsTab">
+      <div class="ads-header">
+        <h3><i class="fas fa-ad"></i> Advertisement Management</h3>
+        <button class="btn-primary btn-sm" onclick="openAdRequestModal()">
+          <i class="fas fa-plus"></i> New Ad Slot
+        </button>
+      </div>
+
+      <!-- Active Ads -->
+      <div class="ads-section">
+        <h4>Active Ads (<span id="activeAdsCount">0</span>)</h4>
+        <div class="ads-list" id="activeAdsList">
+          <!-- Active ads will be shown here -->
+        </div>
+      </div>
+
+      <!-- Pending Requests -->
+      <div class="ads-section">
+        <h4>Pending Requests (<span id="pendingAdsCount">0</span>)</h4>
+        <div class="ads-list" id="pendingAdsList">
+          <!-- Pending ad requests will be shown here -->
+        </div>
+      </div>
+
+      <!-- Ad Revenue -->
+      <div class="ad-revenue-card">
+        <i class="fas fa-dollar-sign"></i>
+        <div>
+          <h4 id="adRevenue">0 RWF</h4>
+          <p>Total Ad Revenue</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Tab -->
+    <div class="tab-content" id="chatTab">
+      <div class="studio-chat-messages" id="studioChatMessages">
+        <div class="chat-empty">
+          <i class="fas fa-comments" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+          <p style="color: var(--text-light);">Start streaming to see chat messages</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div class="tab-content" id="analyticsTab">
+      <div class="analytics-cards">
+        <div class="analytics-card">
+          <i class="fas fa-eye"></i>
+          <div>
+            <h4 id="totalViewers">0</h4>
+            <p>Total Viewers</p>
+          </div>
+        </div>
+        <div class="analytics-card">
+          <i class="fas fa-shopping-cart"></i>
+          <div>
+            <h4 id="totalOrders">0</h4>
+            <p>Orders</p>
+          </div>
+        </div>
+        <div class="analytics-card">
+          <i class="fas fa-money-bill-wave"></i>
+          <div>
+            <h4 id="totalRevenue">0 RWF</h4>
+            <p>Revenue</p>
+          </div>
+        </div>
+        <div class="analytics-card">
+          <i class="fas fa-heart"></i>
+          <div>
+            <h4 id="totalReactions">0</h4>
+            <p>Reactions</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-products">
+        <h4>Top Selling Products</h4>
+        <div id="topProductsList">
+          <p style="color: var(--text-light); text-align: center; padding: 2rem;">No sales yet</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Product Picker Modal -->
+<div class="modal-overlay" id="productPickerModal" style="display: none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h2><i class="fas fa-box"></i> Select Products to Feature</h2>
+      <button class="modal-close" onclick="closeProductPicker()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="text" class="search-input" placeholder="Search products..." id="modalProductSearch" onkeyup="filterModalProducts()">
+      <div class="modal-products-grid" id="modalProductsGrid">
+        <!-- Products will be loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ad Request Modal -->
+<div class="modal-overlay" id="adRequestModal" style="display: none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h2><i class="fas fa-ad"></i> Create Ad Slot</h2>
+      <button class="modal-close" onclick="closeAdRequestModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="ad-form">
+        <div class="form-group">
+          <label>Ad Slot Name</label>
+          <input type="text" id="adSlotName" placeholder="e.g., Mid-Stream Banner" class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label>Duration (seconds)</label>
+          <input type="number" id="adDuration" placeholder="15" min="5" max="60" value="15" class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label>Price (RWF)</label>
+          <input type="number" id="adPrice" placeholder="10000" min="1000" step="1000" value="10000" class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label>Position</label>
+          <select id="adPosition" class="form-input">
+            <option value="top">Top Banner</option>
+            <option value="middle">Mid-Stream</option>
+            <option value="bottom">Bottom Banner</option>
+            <option value="sidebar">Sidebar</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="adDescription" placeholder="Describe the ad slot..." rows="3" class="form-input"></textarea>
+        </div>
+        
+        <button class="btn-primary full-width" onclick="createAdSlot()">
+          <i class="fas fa-plus"></i> Create Ad Slot
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ad Details Modal -->
+<div class="modal-overlay" id="adDetailsModal" style="display: none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h2><i class="fas fa-info-circle"></i> Ad Request Details</h2>
+      <button class="modal-close" onclick="closeAdDetailsModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="adDetailsContent">
+        <!-- Ad details will be loaded here -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn-success" onclick="approveAd()">
+          <i class="fas fa-check"></i> Approve
+        </button>
+        <button class="btn-danger" onclick="rejectAd()">
+          <i class="fas fa-times"></i> Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Ad Modal -->
+<div class="modal-overlay" id="editAdModal" style="display: none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h2><i class="fas fa-edit"></i> Edit Advertisement</h2>
+      <button class="modal-close" onclick="closeEditAdModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="ad-form">
+        <div class="form-group">
+          <label>Ad Title *</label>
+          <input type="text" id="editAdTitle" class="form-input" placeholder="e.g., MTN Mobile Money">
+        </div>
+        
+        <div class="form-group">
+          <label>Ad Content *</label>
+          <textarea id="editAdContent" class="form-input" rows="3" placeholder="The message to display"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Duration (seconds) *</label>
+          <input type="number" id="editDuration" class="form-input" min="5" max="60" value="15">
+        </div>
+        
+        <div class="form-group">
+          <label>Price (RWF) *</label>
+          <input type="number" id="editPrice" class="form-input" min="1000" step="1000" value="10000">
+        </div>
+        
+        <div class="form-group">
+          <label>Position</label>
+          <select id="editPosition" class="form-input">
+            <option value="top">Top Banner</option>
+            <option value="middle">Mid-Stream</option>
+            <option value="bottom">Bottom Banner</option>
+            <option value="sidebar">Sidebar</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="editDescription" class="form-input" rows="3" placeholder="Additional details"></textarea>
+        </div>
+        
+        <button class="btn-primary full-width" onclick="saveEditedAd()">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="../app.js"></script>
+<script src="js/auth.js"></script>
+<script>requireAuth();</script>
+<script src="js/ai-translator.js"></script>
+<script src="js/live-studio.js"></script>
+<script src="js/live-ads.js"></script>
+</body>
+</html>

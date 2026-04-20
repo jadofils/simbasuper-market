@@ -173,7 +173,7 @@
       </button>
       
       <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-light); text-align: center;">
-        Demo: customer@simba.com / Simba123 or admin@simba.com / Simba@123
+        Demo: customer@simba.com / Simba@123 or admin@simba.com / Simba@123
       </p>
     </form>
 
@@ -223,10 +223,16 @@
         name: 'Simba Customer',
         email: 'customer@simba.com',
         phone: '+250788111111',
-        password: 'Simba123',
+        password: 'Simba@123',
         role: 'customer',
         createdAt: new Date().toISOString()
       });
+    } else {
+      // Update existing customer password to match
+      const customer = users.find(u => u.email === 'customer@simba.com');
+      if (customer && customer.password !== 'Simba@123') {
+        customer.password = 'Simba@123';
+      }
     }
     
     // Create default admin if doesn't exist
@@ -278,7 +284,13 @@
       showToast('Login successful! Redirecting...');
       
       setTimeout(() => {
-        if (user.role === 'admin') {
+        // Check for return URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnUrl = urlParams.get('return');
+        
+        if (returnUrl) {
+          window.location.href = returnUrl;
+        } else if (user.role === 'admin') {
           window.location.href = 'dashboard.html';
         } else {
           window.location.href = 'customer-dashboard.html';
