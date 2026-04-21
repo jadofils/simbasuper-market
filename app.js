@@ -3,6 +3,65 @@ let products = [];
 let categories = [];
 let currentLanguage = 'en';
 let displayedProducts = 12;
+let selectedBranch = null;
+
+// Branch data
+const branches = [
+  {
+    id: 'kigali-city',
+    name: 'Simba Kigali City Center',
+    address: 'KN 4 Ave, Kigali',
+    phone: '+250 788 123 456',
+    status: 'open',
+    products: 552,
+    rating: 4.8
+  },
+  {
+    id: 'kimironko',
+    name: 'Simba Kimironko',
+    address: 'KG 7 Ave, Kimironko',
+    phone: '+250 788 234 567',
+    status: 'open',
+    products: 487,
+    rating: 4.7
+  },
+  {
+    id: 'nyabugogo',
+    name: 'Simba Nyabugogo',
+    address: 'KN 3 Rd, Nyabugogo',
+    phone: '+250 788 345 678',
+    status: 'open',
+    products: 523,
+    rating: 4.6
+  },
+  {
+    id: 'remera',
+    name: 'Simba Remera',
+    address: 'KG 5 Ave, Remera',
+    phone: '+250 788 456 789',
+    status: 'open',
+    products: 498,
+    rating: 4.9
+  },
+  {
+    id: 'kicukiro',
+    name: 'Simba Kicukiro',
+    address: 'KK 15 Rd, Kicukiro',
+    phone: '+250 788 567 890',
+    status: 'closed',
+    products: 445,
+    rating: 4.5
+  },
+  {
+    id: 'gikondo',
+    name: 'Simba Gikondo',
+    address: 'KK 7 Ave, Gikondo',
+    phone: '+250 788 678 901',
+    status: 'open',
+    products: 512,
+    rating: 4.7
+  }
+];
 
 // Translations
 const translations = {
@@ -68,12 +127,37 @@ async function loadProducts() {
     
     const data = await response.json();
     // Handle both array and object with products property
-    products = Array.isArray(data) ? data : (data.products || []);
+    let allProducts = Array.isArray(data) ? data : (data.products || []);
+    
+    // Assign random branches to products if not already assigned
+    allProducts = allProducts.map(product => {
+      if (!product.branchId) {
+        // Randomly assign to 1-3 branches
+        const numBranches = Math.floor(Math.random() * 3) + 1;
+        const availableBranches = branches.filter(b => b.status === 'open');
+        const assignedBranches = [];
+        
+        for (let i = 0; i < numBranches; i++) {
+          const randomBranch = availableBranches[Math.floor(Math.random() * availableBranches.length)];
+          if (!assignedBranches.includes(randomBranch.id)) {
+            assignedBranches.push(randomBranch.id);
+          }
+        }
+        
+        product.branches = assignedBranches;
+      }
+      return product;
+    });
+    
+    products = allProducts;
     
     // Cache products for dashboard
     localStorage.setItem('cachedProducts', JSON.stringify(products));
     
     console.log(`Loaded ${products.length} products`);
+    
+    // Filter by selected branch
+    filterProductsByBranch();
     
     // Extract unique categories
     const categoryMap = new Map();
@@ -488,6 +572,9 @@ function updateTranslations() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  // Check branch selection first
+  checkBranchSelection();
+  
   // Load saved theme
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -1076,3 +1163,164 @@ function resetAutoSlide() {
   clearInterval(sliderInterval);
   startAutoSlide();
 }
+
+// ========== BRANCH SELECTION ==========
+function checkBranchSelection() {
+  const saved = localStorage.getItem('selectedBranch');
+  if (saved) {
+    selectedBranch = JSON.parse(saved);
+    updateBranchDisplay();
+  } else {
+    // Show branch selection modal on first visit
+    setTimeout(() => {
+      const modal = document.getElementById('branchModal');
+      if (modal) {
+        openBranchSelector(true);
+      }
+    }, 1000);
+  }
+}
+
+function openBranchSelector(required = false) {
+  console.log('Opening branch selector, required:', required);
+  const modal = document.getElementById('branchModal');
+  const closeBtn = document.getElementById('closeBranchBtn');
+  
+  if (!modal) {
+    console.error('Branch modal not found!');
+    return;
+  }
+  
+  if (required) {
+    closeBtn.style.display = 'none';
+  } else {
+    closeBtn.style.display = 'block';
+  }
+  
+  modal.classList.add('show');
+  renderBranchesModal();
+}
+
+function closeBranchModal() {
+  if (!selectedBranch) {
+    showToast('Please select a branch to continue shopping');
+    return;
+  }
+  document.getElementById('branchModal').classList.remove('show');
+}
+
+function renderBranchesModal() {
+  const grid = document.getElementById('branchesModalGrid');
+  if (!grid) {
+    console.error('Branch modal grid not found');
+    return;
+  }
+  
+  console.log('Rendering branches modal...');
+  
+  grid.innerHTML = branches.map(branch => `
+    <div onclick="selectBranch('${branch.id}')" style="background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: all 0.3s; ${branch.status === 'closed' ? 'opacity: 0.6;' : ''}">
+      <div style="display: flex; align-items: start; gap: 1rem; margin-bottom: 1rem;">
+        <div style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+          <i class="fas fa-store"></i>
+        </div>
+        <div style="flex: 1;">
+          <h3 style="margin: 0 0 0.5rem 0; color: var(--text); font-size: 1.1rem;">${branch.name}</h3>
+          <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${branch.status === 'open' ? 'var(--success-bg)' : 'var(--danger-bg)'}; color: ${branch.status === 'open' ? 'var(--success)' : 'var(--danger)'}">
+            <i class="fas fa-circle"></i> ${branch.status === 'open' ? 'Open Now' : 'Closed'}
+          </span>
+        </div>
+      </div>
+      
+      <div style="display: grid; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-light);">
+        <div><i class="fas fa-map-marker-alt" style="color: var(--accent); width: 20px;"></i> ${branch.address}</div>
+        <div><i class="fas fa-phone" style="color: var(--accent); width: 20px;"></i> ${branch.phone}</div>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border);">
+        <div style="text-align: center;">
+          <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent);">${branch.products}</div>
+          <div style="font-size: 0.75rem; color: var(--text-light);">Products</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent);"><i class="fas fa-star" style="color: #FFC107;"></i> ${branch.rating}</div>
+          <div style="font-size: 0.75rem; color: var(--text-light);">Rating</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectBranch(branchId) {
+  console.log('Selecting branch:', branchId);
+  const branch = branches.find(b => b.id === branchId);
+  
+  if (!branch) {
+    console.error('Branch not found:', branchId);
+    return;
+  }
+  
+  if (branch.status === 'closed') {
+    showToast('This branch is currently closed. Please select another branch.');
+    return;
+  }
+  
+  selectedBranch = branch;
+  localStorage.setItem('selectedBranch', JSON.stringify(branch));
+  
+  console.log('Branch selected:', branch);
+  
+  updateBranchDisplay();
+  
+  const modal = document.getElementById('branchModal');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+  
+  showToast(`Shopping at ${branch.name}`);
+  
+  // Reload products for this branch
+  filterProductsByBranch();
+}
+
+function updateBranchDisplay() {
+  const branchNameEl = document.getElementById('selectedBranchName');
+  if (branchNameEl && selectedBranch) {
+    branchNameEl.textContent = selectedBranch.name.replace('Simba ', '');
+  }
+}
+
+function filterProductsByBranch() {
+  if (!selectedBranch) return;
+  
+  // Filter products available at selected branch
+  const branchProducts = products.filter(p => 
+    p.branches && p.branches.includes(selectedBranch.id)
+  );
+  
+  console.log(`Filtered ${branchProducts.length} products for branch ${selectedBranch.name}`);
+  
+  // Update categories based on filtered products
+  const categoryMap = new Map();
+  branchProducts.forEach(product => {
+    if (!categoryMap.has(product.category)) {
+      categoryMap.set(product.category, {
+        name: product.category,
+        count: 0
+      });
+    }
+    categoryMap.get(product.category).count++;
+  });
+  
+  categories = Array.from(categoryMap.values());
+  
+  // Re-render with filtered products
+  renderCategories();
+  renderProducts();
+  populateCategoryFilter();
+}
+
+// Make functions globally available
+window.openBranchSelector = openBranchSelector;
+window.closeBranchModal = closeBranchModal;
+window.selectBranch = selectBranch;

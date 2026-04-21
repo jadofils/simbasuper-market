@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Select Branch — Simba Supermarket</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    .branches-hero { text-align: center; padding: 3rem 1rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border-radius: 16px; margin-bottom: 3rem; }
+    .branches-hero h1 { margin: 0 0 1rem 0; font-size: 2.5rem; }
+    .branches-hero p { font-size: 1.1rem; opacity: 0.9; }
+    .branches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+    .branch-card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 2rem; cursor: pointer; transition: all 0.3s; }
+    .branch-card:hover { border-color: var(--accent); transform: translateY(-5px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+    .branch-header { display: flex; align-items: start; gap: 1rem; margin-bottom: 1.5rem; }
+    .branch-icon { width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--primary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; }
+    .branch-info h3 { margin: 0 0 0.5rem 0; color: var(--text); font-size: 1.3rem; }
+    .branch-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+    .status-open { background: var(--success-bg); color: var(--success); }
+    .status-closed { background: var(--danger-bg); color: var(--danger); }
+    .branch-details { display: grid; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .detail-item { display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); font-size: 0.95rem; }
+    .detail-item i { color: var(--accent); width: 20px; }
+    .branch-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    .stat { text-align: center; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 0.8rem; color: var(--text-light); margin-top: 0.25rem; }
+    @media (max-width: 768px) {
+      .branches-grid { grid-template-columns: 1fr; }
+      .branches-hero h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html" class="logo">
+        <i class="fas fa-shopping-bag logo-icon"></i>
+        <span class="logo-text">Simba</span>
+      </a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="section">
+  <div class="branches-hero">
+    <h1><i class="fas fa-store"></i> Choose Your Nearest Branch</h1>
+    <p>Shop from your preferred Simba Supermarket location</p>
+  </div>
+
+  <div class="branches-grid" id="branchesGrid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script>
+  const branches = [
+    {
+      id: 'kigali-city',
+      name: 'Simba Kigali City Center',
+      address: 'KN 4 Ave, Kigali',
+      phone: '+250 788 123 456',
+      email: 'kigali@simba.rw',
+      hours: 'Mon-Sat: 7:00 AM - 10:00 PM, Sun: 8:00 AM - 8:00 PM',
+      status: 'open',
+      products: 552,
+      rating: 4.8,
+      distance: '2.5 km',
+      coordinates: { lat: -1.9441, lng: 30.0619 }
+    },
+    {
+      id: 'kimironko',
+      name: 'Simba Kimironko',
+      address: 'KG 7 Ave, Kimironko',
+      phone: '+250 788 234 567',
+      email: 'kimironko@simba.rw',
+      hours: 'Mon-Sat: 7:00 AM - 10:00 PM, Sun: 8:00 AM - 8:00 PM',
+      status: 'open',
+      products: 487,
+      rating: 4.7,
+      distance: '5.1 km',
+      coordinates: { lat: -1.9536, lng: 30.1047 }
+    },
+    {
+      id: 'nyabugogo',
+      name: 'Simba Nyabugogo',
+      address: 'KN 3 Rd, Nyabugogo',
+      phone: '+250 788 345 678',
+      email: 'nyabugogo@simba.rw',
+      hours: 'Mon-Sat: 6:30 AM - 10:00 PM, Sun: 7:00 AM - 9:00 PM',
+      status: 'open',
+      products: 523,
+      rating: 4.6,
+      distance: '3.8 km',
+      coordinates: { lat: -1.9706, lng: 30.0444 }
+    },
+    {
+      id: 'remera',
+      name: 'Simba Remera',
+      address: 'KG 5 Ave, Remera',
+      phone: '+250 788 456 789',
+      email: 'remera@simba.rw',
+      hours: 'Mon-Sat: 7:00 AM - 10:00 PM, Sun: 8:00 AM - 8:00 PM',
+      status: 'open',
+      products: 498,
+      rating: 4.9,
+      distance: '4.2 km',
+      coordinates: { lat: -1.9578, lng: 30.0909 }
+    },
+    {
+      id: 'kicukiro',
+      name: 'Simba Kicukiro',
+      address: 'KK 15 Rd, Kicukiro',
+      phone: '+250 788 567 890',
+      email: 'kicukiro@simba.rw',
+      hours: 'Mon-Sat: 7:00 AM - 9:00 PM, Sun: 8:00 AM - 7:00 PM',
+      status: 'closed',
+      products: 445,
+      rating: 4.5,
+      distance: '7.3 km',
+      coordinates: { lat: -1.9894, lng: 30.0994 }
+    },
+    {
+      id: 'gikondo',
+      name: 'Simba Gikondo',
+      address: 'KK 7 Ave, Gikondo',
+      phone: '+250 788 678 901',
+      email: 'gikondo@simba.rw',
+      hours: 'Mon-Sat: 7:00 AM - 10:00 PM, Sun: 8:00 AM - 8:00 PM',
+      status: 'open',
+      products: 512,
+      rating: 4.7,
+      distance: '6.5 km',
+      coordinates: { lat: -1.9847, lng: 30.0589 }
+    }
+  ];
+
+  function renderBranches() {
+    const html = branches.map(branch => `
+      <div class="branch-card" onclick="selectBranch('${branch.id}')">
+        <div class="branch-header">
+          <div class="branch-icon">
+            <i class="fas fa-store"></i>
+          </div>
+          <div class="branch-info">
+            <h3>${branch.name}</h3>
+            <span class="branch-status status-${branch.status}">
+              <i class="fas fa-circle"></i> ${branch.status === 'open' ? 'Open Now' : 'Closed'}
+            </span>
+          </div>
+        </div>
+        
+        <div class="branch-details">
+          <div class="detail-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>${branch.address}</span>
+          </div>
+          <div class="detail-item">
+            <i class="fas fa-phone"></i>
+            <span>${branch.phone}</span>
+          </div>
+          <div class="detail-item">
+            <i class="fas fa-clock"></i>
+            <span>${branch.hours}</span>
+          </div>
+          <div class="detail-item">
+            <i class="fas fa-route"></i>
+            <span>${branch.distance} away</span>
+          </div>
+        </div>
+
+        <div class="branch-stats">
+          <div class="stat">
+            <div class="stat-value">${branch.products}</div>
+            <div class="stat-label">Products</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value"><i class="fas fa-star" style="color: #FFC107;"></i> ${branch.rating}</div>
+            <div class="stat-label">Rating</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value"><i class="fas fa-arrow-right" style="color: var(--accent);"></i></div>
+            <div class="stat-label">Shop Now</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('branchesGrid').innerHTML = html;
+  }
+
+  function selectBranch(branchId) {
+    const branch = branches.find(b => b.id === branchId);
+    
+    if (branch.status === 'closed') {
+      showToast('This branch is currently closed. Please select another branch.');
+      return;
+    }
+
+    localStorage.setItem('selectedBranch', JSON.stringify(branch));
+    showToast(`Selected: ${branch.name}`);
+    
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 1000);
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  window.onload = () => {
+    renderBranches();
+  };
+</script>
+
+</body>
+</html>

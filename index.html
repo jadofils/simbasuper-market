@@ -26,6 +26,10 @@
         <i class="fas fa-question-circle"></i>
         <span>FAQ</span>
       </a>
+      <button class="categories-menu-btn" onclick="openBranchSelector()" title="Change Branch" id="branchBtn">
+        <i class="fas fa-store"></i>
+        <span id="selectedBranchName">Select Branch</span>
+      </button>
     </div>
 
     <!-- CENTER: Search Bar -->
@@ -258,6 +262,18 @@
     </div>
   </div>
 </section>
+
+<!-- Branch Selection Modal -->
+<div id="branchModal" class="image-search-modal" style="z-index: 10000;">
+  <div class="modal-content" style="max-width: 900px;">
+    <div class="modal-header">
+      <h2><i class="fas fa-store"></i> Select Your Branch</h2>
+      <button class="close-modal" onclick="closeBranchModal()" id="closeBranchBtn" style="display: none;">&times;</button>
+    </div>
+    <p style="text-align: center; color: var(--text-light); margin-bottom: 2rem;">Choose your nearest Simba Supermarket branch to see available products</p>
+    <div id="branchesModalGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; max-height: 60vh; overflow-y: auto; padding: 1rem;"></div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>

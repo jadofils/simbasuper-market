@@ -173,7 +173,9 @@
       </button>
       
       <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-light); text-align: center;">
-        Demo: customer@simba.com / Simba@123 or admin@simba.com / Simba@123
+        Demo: customer@simba.com / Simba@123<br>
+        Admin: admin@simba.com / Simba@123<br>
+        Branch: branch@simba.com / Simba@123
       </p>
     </form>
 
@@ -249,6 +251,21 @@
       });
     }
     
+    // Create default branch representative if doesn't exist
+    const branchExists = users.some(u => u.email === 'branch@simba.com');
+    if (!branchExists) {
+      users.push({
+        id: 'USER-BRANCH',
+        name: 'Branch Representative',
+        email: 'branch@simba.com',
+        phone: '+250788222222',
+        password: 'Simba@123',
+        role: 'branch',
+        branchId: 'kigali-city',
+        createdAt: new Date().toISOString()
+      });
+    }
+    
     localStorage.setItem('users', JSON.stringify(users));
   }
 
@@ -292,6 +309,8 @@
           window.location.href = returnUrl;
         } else if (user.role === 'admin') {
           window.location.href = 'dashboard.html';
+        } else if (user.role === 'branch') {
+          window.location.href = 'branch-dashboard.html';
         } else {
           window.location.href = 'customer-dashboard.html';
         }

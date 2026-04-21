@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Branch Dashboard — Simba Supermarket</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    .dashboard-layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 260px; background: var(--card-bg); border-right: 2px solid var(--border); padding: 2rem 0; position: fixed; height: 100vh; overflow-y: auto; }
+    .sidebar-header { padding: 0 1.5rem 2rem; border-bottom: 2px solid var(--border); }
+    .sidebar-menu { padding: 1rem 0; }
+    .menu-item { display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1.5rem; color: var(--text); text-decoration: none; transition: all 0.3s; }
+    .menu-item:hover, .menu-item.active { background: var(--accent); color: white; }
+    .menu-item i { width: 20px; }
+    .main-content { margin-left: 260px; flex: 1; padding: 2rem; background: var(--bg); }
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 { margin: 0 0 0.5rem 0; color: var(--text); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+    .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+    .stat-label { color: var(--text-light); font-size: 0.9rem; }
+    .card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .card-header h2 { margin: 0; color: var(--text); font-size: 1.3rem; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { text-align: left; padding: 1rem; background: var(--surface); color: var(--text); font-weight: 600; border-bottom: 2px solid var(--border); }
+    .data-table td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text); }
+    .data-table tr:hover { background: var(--surface); }
+    .badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-info { background: var(--info-bg); color: var(--info); }
+    .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px; border: none; cursor: pointer; transition: all 0.3s; }
+    .btn-edit { background: var(--info); color: white; }
+    .btn-delete { background: var(--danger); color: white; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text); font-weight: 600; font-size: 0.9rem; }
+    .form-input, .form-select { width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; position: relative; height: auto; }
+      .main-content { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <i class="fas fa-store" style="font-size: 2rem; color: var(--accent);"></i>
+        <div>
+          <h3 style="margin: 0; color: var(--text);" id="branchName">Branch</h3>
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-light);">Representative</p>
+        </div>
+      </div>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <a href="#" class="menu-item active" onclick="showSection('overview')">
+        <i class="fas fa-chart-line"></i>
+        <span>Overview</span>
+      </a>
+      <a href="#" class="menu-item" onclick="showSection('products')">
+        <i class="fas fa-box"></i>
+        <span>Products & Stock</span>
+      </a>
+      <a href="#" class="menu-item" onclick="showSection('categories')">
+        <i class="fas fa-tags"></i>
+        <span>Categories</span>
+      </a>
+      <a href="#" class="menu-item" onclick="showSection('orders')">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Orders</span>
+      </a>
+      <a href="#" class="menu-item" onclick="showSection('payments')">
+        <i class="fas fa-credit-card"></i>
+        <span>Payments</span>
+      </a>
+      <a href="#" class="menu-item" onclick="showSection('customers')">
+        <i class="fas fa-users"></i>
+        <span>Customers</span>
+      </a>
+      <a href="#" class="menu-item" onclick="showSection('reports')">
+        <i class="fas fa-file-alt"></i>
+        <span>Reports</span>
+      </a>
+      <a href="index.html" class="menu-item">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Store</span>
+      </a>
+      <a href="#" class="menu-item" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Overview Section -->
+    <div id="overviewSection" class="section-content">
+      <div class="page-header">
+        <h1>Branch Overview</h1>
+        <p style="color: var(--text-light);">Welcome back! Here's your branch performance</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--success-bg); color: var(--success);">
+            <i class="fas fa-box"></i>
+          </div>
+          <div class="stat-value" id="totalProducts">0</div>
+          <div class="stat-label">Total Products</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--warning-bg); color: var(--warning);">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="stat-value" id="lowStock">0</div>
+          <div class="stat-label">Low Stock Items</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--info-bg); color: var(--info);">
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+          <div class="stat-value" id="todayOrders">0</div>
+          <div class="stat-label">Today's Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--accent-light); color: var(--accent);">
+            <i class="fas fa-money-bill-wave"></i>
+          </div>
+          <div class="stat-value" id="todayRevenue">0</div>
+          <div class="stat-label">Today's Revenue</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-chart-bar"></i> Recent Activity</h2>
+        </div>
+        <div id="recentActivity"></div>
+      </div>
+    </div>
+
+    <!-- Products Section -->
+    <div id="productsSection" class="section-content" style="display: none;">
+      <div class="page-header">
+        <h1>Products & Stock Management</h1>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Product Inventory</h2>
+          <button class="btn-primary" onclick="showAddProductForm()">
+            <i class="fas fa-plus"></i> Add Product
+          </button>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <input type="text" id="productSearch" class="form-input" placeholder="Search products..." onkeyup="filterProducts()" />
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="data-table" id="productsTable">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories Section -->
+    <div id="categoriesSection" class="section-content" style="display: none;">
+      <div class="page-header">
+        <h1>Categories & Subcategories</h1>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Manage Categories</h2>
+          <button class="btn-primary" onclick="showAddCategoryForm()">
+            <i class="fas fa-plus"></i> Add Category
+          </button>
+        </div>
+        <div id="categoriesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;"></div>
+      </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div id="ordersSection" class="section-content" style="display: none;">
+      <div class="page-header">
+        <h1>Orders Management</h1>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Branch Orders</h2>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payments Section -->
+    <div id="paymentsSection" class="section-content" style="display: none;">
+      <div class="page-header">
+        <h1>Payments</h1>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="totalPayments">0 RWF</div>
+          <div class="stat-label">Total Payments</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="momoPayments">0</div>
+          <div class="stat-label">MoMo Payments</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="cashPayments">0</div>
+          <div class="stat-label">Cash Payments</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Payment Transactions</h2>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customers Section -->
+    <div id="customersSection" class="section-content" style="display: none;">
+      <div class="page-header">
+        <h1>Customers</h1>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Customer Database</h2>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Total Orders</th>
+                <th>Total Spent</th>
+                <th>Last Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div id="reportsSection" class="section-content" style="display: none;">
+      <div class="page-header">
+        <h1>Reports & Analytics</h1>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Sales Report</h2>
+          <select class="form-select" style="width: auto;" onchange="generateReport(this.value)">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
+        <div id="reportContent"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script>
+  let branchData = null;
+  let branchProducts = [];
+
+  function init() {
+    // Check authentication
+    const auth = localStorage.getItem('branchAuth') || sessionStorage.getItem('currentUser');
+    if (!auth) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const user = JSON.parse(auth);
+    if (user.role !== 'branch') {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Load branch data
+    const branches = JSON.parse(localStorage.getItem('branches') || '[]');
+    branchData = branches.find(b => b.id === user.branchId) || { id: 'kigali-city', name: 'Kigali City Center' };
+    
+    document.getElementById('branchName').textContent = branchData.name;
+    
+    loadDashboardData();
+  }
+
+  function loadDashboardData() {
+    // Load products for this branch
+    const allProducts = JSON.parse(localStorage.getItem('cachedProducts') || '[]');
+    branchProducts = allProducts.filter(p => p.branches && p.branches.includes(branchData.id));
+    
+    // Update stats
+    document.getElementById('totalProducts').textContent = branchProducts.length;
+    document.getElementById('lowStock').textContent = branchProducts.filter(p => (p.stock || 0) < 10).length;
+    
+    // Load orders
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const branchOrders = orders.filter(o => o.branchId === branchData.id);
+    const today = new Date().toDateString();
+    const todayOrders = branchOrders.filter(o => new Date(o.orderDate).toDateString() === today);
+    
+    document.getElementById('todayOrders').textContent = todayOrders.length;
+    document.getElementById('todayRevenue').textContent = todayOrders.reduce((sum, o) => sum + o.total, 0).toLocaleString() + ' RWF';
+    
+    loadProductsTable();
+    loadOrdersTable();
+    loadPaymentsTable();
+    loadCustomersTable();
+    loadRecentActivity();
+  }
+
+  function loadProductsTable() {
+    const tbody = document.getElementById('productsTableBody');
+    tbody.innerHTML = branchProducts.slice(0, 50).map(product => `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <img src="${product.image}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/40'">
+            <span>${product.name}</span>
+          </div>
+        </td>
+        <td>${product.category}</td>
+        <td>${product.price.toLocaleString()} RWF</td>
+        <td>${product.stock || Math.floor(Math.random() * 100)}</td>
+        <td>
+          <span class="badge ${(product.stock || 50) > 20 ? 'badge-success' : (product.stock || 50) > 10 ? 'badge-warning' : 'badge-danger'}">
+            ${(product.stock || 50) > 20 ? 'In Stock' : (product.stock || 50) > 10 ? 'Low Stock' : 'Out of Stock'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-sm btn-edit" onclick="editStock(${product.id})"><i class="fas fa-edit"></i></button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function loadOrdersTable() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const branchOrders = orders.filter(o => o.branchId === branchData.id).slice(0, 20);
+    
+    const tbody = document.getElementById('ordersTableBody');
+    tbody.innerHTML = branchOrders.length > 0 ? branchOrders.map(order => `
+      <tr>
+        <td>${order.orderRef}</td>
+        <td>${order.customer.name}</td>
+        <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+        <td>${order.total.toLocaleString()} RWF</td>
+        <td>${order.paymentMethod}</td>
+        <td><span class="badge badge-${order.status === 'Delivered' ? 'success' : order.status === 'In Transit' ? 'info' : 'warning'}">${order.status}</span></td>
+        <td><button class="btn-sm btn-edit" onclick="viewOrder('${order.orderRef}')"><i class="fas fa-eye"></i></button></td>
+      </tr>
+    `).join('') : '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-light);">No orders yet</td></tr>';
+  }
+
+  function loadPaymentsTable() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const branchOrders = orders.filter(o => o.branchId === branchData.id);
+    
+    document.getElementById('totalPayments').textContent = branchOrders.reduce((sum, o) => sum + o.total, 0).toLocaleString() + ' RWF';
+    document.getElementById('momoPayments').textContent = branchOrders.filter(o => o.paymentMethod && o.paymentMethod.includes('MoMo')).length;
+    document.getElementById('cashPayments').textContent = branchOrders.filter(o => o.paymentMethod === 'Cash on Delivery').length;
+    
+    const tbody = document.getElementById('paymentsTableBody');
+    tbody.innerHTML = branchOrders.slice(0, 20).map(order => `
+      <tr>
+        <td>TXN-${order.orderRef.slice(-6)}</td>
+        <td>${order.orderRef}</td>
+        <td>${order.customer.name}</td>
+        <td>${order.total.toLocaleString()} RWF</td>
+        <td>${order.paymentMethod}</td>
+        <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+        <td><span class="badge badge-success">Completed</span></td>
+      </tr>
+    `).join('') || '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-light);">No payments yet</td></tr>';
+  }
+
+  function loadCustomersTable() {
+    const customers = JSON.parse(localStorage.getItem('customerDatabase') || '[]');
+    const tbody = document.getElementById('customersTableBody');
+    
+    tbody.innerHTML = customers.slice(0, 20).map(customer => `
+      <tr>
+        <td>${customer.name}</td>
+        <td>${customer.phone}</td>
+        <td>${customer.totalOrders}</td>
+        <td>${customer.totalSpent.toLocaleString()} RWF</td>
+        <td>${new Date(customer.lastOrderDate).toLocaleDateString()}</td>
+        <td><button class="btn-sm btn-edit" onclick="viewCustomer('${customer.id}')"><i class="fas fa-eye"></i></button></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-light);">No customers yet</td></tr>';
+  }
+
+  function loadRecentActivity() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const recentOrders = orders.filter(o => o.branchId === branchData.id).slice(0, 5);
+    
+    const html = recentOrders.length > 0 ? recentOrders.map(order => `
+      <div style="padding: 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong style="color: var(--text);">${order.orderRef}</strong>
+          <p style="margin: 0.25rem 0 0 0; color: var(--text-light); font-size: 0.9rem;">${order.customer.name} • ${order.items.length} items</p>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-weight: 700; color: var(--accent);">${order.total.toLocaleString()} RWF</div>
+          <div style="font-size: 0.85rem; color: var(--text-light);">${new Date(order.orderDate).toLocaleTimeString()}</div>
+        </div>
+      </div>
+    `).join('') : '<p style="text-align: center; padding: 2rem; color: var(--text-light);">No recent activity</p>';
+    
+    document.getElementById('recentActivity').innerHTML = html;
+  }
+
+  function showSection(section) {
+    document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    
+    document.getElementById(section + 'Section').style.display = 'block';
+    event.target.closest('.menu-item').classList.add('active');
+  }
+
+  function filterProducts() {
+    const search = document.getElementById('productSearch').value.toLowerCase();
+    const filtered = branchProducts.filter(p => 
+      p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search)
+    );
+    
+    const tbody = document.getElementById('productsTableBody');
+    tbody.innerHTML = filtered.slice(0, 50).map(product => `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <img src="${product.image}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/40'">
+            <span>${product.name}</span>
+          </div>
+        </td>
+        <td>${product.category}</td>
+        <td>${product.price.toLocaleString()} RWF</td>
+        <td>${product.stock || Math.floor(Math.random() * 100)}</td>
+        <td>
+          <span class="badge ${(product.stock || 50) > 20 ? 'badge-success' : (product.stock || 50) > 10 ? 'badge-warning' : 'badge-danger'}">
+            ${(product.stock || 50) > 20 ? 'In Stock' : (product.stock || 50) > 10 ? 'Low Stock' : 'Out of Stock'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-sm btn-edit" onclick="editStock(${product.id})"><i class="fas fa-edit"></i></button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function editStock(productId) {
+    const newStock = prompt('Enter new stock quantity:');
+    if (newStock !== null) {
+      showToast('Stock updated successfully');
+      loadProductsTable();
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('branchAuth');
+    sessionStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  window.onload = init;
+</script>
+
+</body>
+</html>
